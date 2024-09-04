@@ -10,12 +10,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Research Assistant</title>
+    <!-- Custom CSS for the fade-in effect -->
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
 
+            to {
+                opacity: 1;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+    </style>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome (for icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet">
 
     <!-- Alpine.js (for interactivity) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.1/dist/cdn.min.js"></script>
@@ -56,20 +72,21 @@
             <div class="w-1/3 bg-white p-4 pt-0 shadow-md space-y-4 overflow-y-auto h-full">
 
                 <!-- Post-it notes will be dynamically inserted here -->
-                <div class="sticky top-0 bg-white p-2 pt-4 z-10">
+                <div class="sticky top-0 bg-white  pt-4 z-10 flex flex-row justify-between items-end">
                     <h2 class="text-xl font-semibold">Notes</h2>
-                    <hr class="my-2">
-                    <button class="bg-red-600 text-white p-4 rounded-md shadow flex items-center w-full"
+                    <button class="bg-red-500 text-white p-4 rounded-md shadow flex items-center w-[150px]"
                         id="delete-button">
-                        <i class="fa-solid fa-trash mr-2"></i>Clean
+                        <i class="fa-solid fa-trash mr-2"></i>Delete Notes
                     </button>
-                </div>
 
+
+                </div>
+                <hr class="my-2">
                 <!-- Clean Button (Secondary, Negative Action) -->
 
                 <!-- Left Pane (Post-it Notes, 30% Width) -->
                 <div id="notes-container">
-                   
+
                 </div>
             </div>
 
@@ -87,14 +104,14 @@
                     <!-- Action Buttons (Retry and Slides) -->
                     <div class="flex space-x-4">
                         <!-- Retry Button (Primary) -->
-                        <button class="bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
+                        <button class="bg-gray-300 text-gray-800 p-4 rounded-md shadow flex items-center">
                             <i class="fa-solid fa-redo mr-2"></i>Retry
                         </button>
 
                         <!-- Slides Button (Secondary) -->
-                        <button class="bg-gray-300 text-gray-800 p-4 rounded-md shadow flex items-center">
+                        <!-- <button class="bg-gray-300 text-gray-800 p-4 rounded-md shadow flex items-center">
                             <i class="fa-solid fa-sliders-h mr-2"></i>Slides
-                        </button>
+                        </button> -->
                     </div>
                 </div>
 

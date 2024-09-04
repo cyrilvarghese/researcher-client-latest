@@ -1,7 +1,7 @@
 // tableRenderer.js
 
 import { refreshDocuments, fetchSlideData } from './api.js'; // Import the refreshDocuments function
-import { showSlidesPopup } from './slidesRenderer.js';
+import { showSlidesPopup } from './newSliderenderer.js';
 // Store data globally within the module
 let globalData = [];
 
@@ -19,33 +19,9 @@ export function renderExtractedDataTable(data) {
 
     // Generate the table rows based on the data
     const tableRows = data.competencies.map((competency, compIndex) =>
-        competency.parts.map((part, partIndex) => `
-            <tr class="hover:bg-gray-100">
-                <td class="border border-gray-300 p-2 text-left">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center">
-                            <p class="font-semibold mr-2">${part.name}</p>
-                            ${part.relevant_docs.length > 0 ?
-                `<a href="#" class="text-blue-500 underline view-docs-link mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs</a>` : ''}
-                            <!-- Refresh Button -->
-                            <button class="refresh-button ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
-                                <i class="fa-solid fa-sync-alt text-gray-500"></i>
-                            </button>
-                        </div>
-                        <!-- Presentation Slides Button -->
-                        <button class="slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
-                            <i class="fa-solid fa-chalkboard"></i>
-                        </button>
-                    </div>
-                </td>
-                <td class="border border-gray-300 p-2 text-left ${part.relevant_docs.length === 0 ? 'text-red-500' : ''}">
-                    <span>
-                        ${part.relevant_docs.length}
-                        ${part.links.length > 0 ? `- <a href="${part.links[0]}" class="${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Search Pubmed</a>` : ''}
-                    </span>
-                </td>
-            </tr>
-        `).join('')
+        competency.parts.map((part, partIndex) =>
+            generateTableRow(compIndex, partIndex, part)
+        ).join('')
     ).join('');
 
     // Insert the updated content into the div
@@ -74,7 +50,7 @@ export function renderExtractedDataTable(data) {
                         <h3 class="text-xl font-semibold mb-2">Relevant Documents</h3>
                         <button class="absolute top-0 right-0 m-4 text-gray-600" id="close-docs-btn">✖</button>
                     </div>
-                    <div id="docs-container" class="space-y-4">
+                    <div id="docs-container" class="space-y-4 breal-all">
                         <!-- Post-it notes for docs will be inserted here -->
                     </div>
                 </div>
@@ -161,11 +137,13 @@ function initializeRefreshHandlers() {
 
 
                 if (refreshedPart) {
+                    // Update the corresponding data in localStorage
+                    updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart);
+
                     // Update the specific row with the new data
                     updateTableRow(compIndex, partIndex, refreshedPart);
 
-                    // Update the corresponding data in localStorage
-                    updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart);
+
                 }
 
             } catch (error) {
@@ -193,7 +171,7 @@ function showDocs(compIndex, partIndex) {
         <h4 class="text-lg font-semibold mb-4">${subtopicName}</h4>
         ${part.relevant_docs.map(doc => `
             <div class="bg-blue-200 text-blue-900 p-4 rounded-md shadow-md">
-                <p class="text-sm">${doc.page_content}</p>
+                <p class="text-sm break-all">${doc.page_content}</p>
                 <a href="${doc.metadata.source}/#:~:text=${encodeURIComponent(doc.page_content.split(' ').slice(0, 5).join(' '))}" class="text-blue-500 underline break-all" target="_blank">${doc.metadata.source}</a>
             </div>
         `).join('')}
@@ -219,24 +197,7 @@ function updateTableRow(compIndex, partIndex, refreshedPart) {
     const tableRow = document.querySelector(rowSelector);
 
     if (tableRow) {
-        const newRowContent = `
-            <td class="border border-gray-300 p-2 text-left">
-                <div class="flex items-center">
-                    <p class="font-semibold mr-2">${refreshedPart.name}</p>
-                    ${refreshedPart.relevant_docs.length > 0 ?
-                `<a href="#" class="text-blue-500 underline view-docs-link mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs</a>`
-                : ''}
-                    <!-- Refresh Button -->
-                    <button class="refresh-button" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
-                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
-                    </button>
-                </div>
-            </td>
-            <td class="border border-gray-300 p-2 text-left ${refreshedPart.relevant_docs.length === 0 ? 'text-red-500' : ''}">
-                ${refreshedPart.relevant_docs.length} 
-                ${refreshedPart.links.length > 0 ? `- <a href="${refreshedPart.links[0]}" class="${refreshedPart.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Search Pubmed</a>` : ''}
-            </td>
-        `;
+        const newRowContent = generateTableRow(compIndex, partIndex, refreshedPart);
 
         // Replace the row's inner HTML with the updated content
         tableRow.innerHTML = newRowContent;
@@ -266,4 +227,35 @@ function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart
         //update global variable after updating local Storage
         globalData = storedData;
     }
+
+
+}
+
+function generateTableRow(compIndex, partIndex, part) {
+    return `
+        <tr class="hover:bg-gray-100" data-comp-index="${compIndex}" data-part-index="${partIndex}">
+            <td class="border border-gray-300 p-2 text-left">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <p class="font-semibold mr-2">${part.name}</p>
+                        ${part.relevant_docs.length > 0 ?
+            `<a href="#" class="text-blue-500 underline view-docs-link mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs</a>`
+            : ''}
+                        <!-- Refresh Button -->
+                        <button class="refresh-button ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
+                            <i class="fa-solid fa-sync-alt text-gray-500"></i>
+                        </button>
+                    </div>
+                    <!-- Presentation Slides Button -->
+                    <button class="slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
+                        <i class="fa-solid fa-chalkboard"></i>
+                    </button>
+                </div>
+            </td>
+            <td class="border border-gray-300 p-2 text-left ${part.relevant_docs.length === 0 ? 'text-red-500' : ''}">
+                ${part.relevant_docs.length} 
+                ${part.links.length > 0 ? `- <a href="${part.links[0]}" class="${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Search Pubmed</a>` : ''}
+            </td>
+        </tr>
+    `;
 }
