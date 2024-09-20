@@ -1,10 +1,14 @@
 // main.js
 
-import { fetchNotes, deleteNotes, extractText, refreshDocuments } from './api.js';
+import { fetchNotes, deleteNotes, extractText, refreshDocuments, fetchIndexedChapters } from './api.js';
 import { renderExtractedDataTable } from './tableRenderer.js'; // Import the module
+import { initTabs } from './tabsModule.js';
+import { renderBooks } from './booksRenderer.js';
 // Attach event listeners
 document.addEventListener('DOMContentLoaded', () => {
-
+    // Initialize the Tabs using the imported function from tabsModule
+    initTabs();
+    renderBooks();
     const filename = 'SLO scabies'; // Replace with the actual filename or obtain it dynamically
 
     // Check if data for this file already exists
@@ -13,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!dataExists) {
         init();
     }
-
+    // Call the renderBooks function on page load or when the Books tab is clicked
+    document.getElementById('books-tab').addEventListener('click', renderBooks);
 
     // Attach delete button event
     const deleteButton = document.querySelector('#delete-button');
@@ -101,6 +106,7 @@ function renderEmptyState() {
         </div>
     `;
 }
+
 
 /**
  * Sets the loading state for a button.

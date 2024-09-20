@@ -1,7 +1,7 @@
 // tableRenderer.js
 
 import { refreshDocuments, fetchSlideData } from './api.js'; // Import the refreshDocuments function
-import { showSlidesPopup } from './newSliderenderer.js';
+import { showContentPopup } from './newSliderenderer.js';
 // Store data globally within the module
 let globalData = [];
 
@@ -100,10 +100,10 @@ function initializeDocViewHandlers() {
 
             try {
                 // Call the fetchSlideData function from api.js
-                const slideData = JSON.parse(await fetchSlideData(partName, relevantDocs));
-
+                const data = JSON.parse(await fetchSlideData(partName, relevantDocs));
+                debugger
                 // Optionally, show a popup with the raw JSON data
-                showSlidesPopup(slideData);
+                showContentPopup(data);
 
 
 
@@ -115,6 +115,31 @@ function initializeDocViewHandlers() {
                 button.classList.remove('animate-pulse');
             }
         });
+    });
+
+
+
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('.attach-button')) {
+            const button = event.target.closest('.attach-button');
+            const compIndex = button.getAttribute('data-comp-index');
+            const partIndex = button.getAttribute('data-part-index');
+            const fileInput = document.querySelector(`.file-input[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+
+            // Trigger the file input
+            fileInput.click();
+        }
+    });
+
+    // Listen for file input change
+    document.addEventListener('change', function (event) {
+        if (event.target.classList.contains('file-input')) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                console.log('Files attached:', files);
+                // Handle the file upload logic here
+            }
+        }
     });
 }
 
@@ -241,10 +266,11 @@ function generateTableRow(compIndex, partIndex, part) {
                         ${part.relevant_docs.length > 0 ?
             `<a href="#" class="text-blue-500 underline view-docs-link mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs</a>`
             : ''}
-                        <!-- Refresh Button -->
-                        <button class="refresh-button ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
-                            <i class="fa-solid fa-sync-alt text-gray-500"></i>
+                        <!-- Attach Icon with Hidden File Input next to View Docs -->
+                        <button class="attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
+                            <i class="fa-solid fa-paperclip"></i>
                         </button>
+                        <input type="file" class="hidden file-input" accept="image/*" data-comp-index="${compIndex}" data-part-index="${partIndex}">
                     </div>
                     <!-- Presentation Slides Button -->
                     <button class="slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
@@ -253,8 +279,15 @@ function generateTableRow(compIndex, partIndex, part) {
                 </div>
             </td>
             <td class="border border-gray-300 p-2 text-left ${part.relevant_docs.length === 0 ? 'text-red-500' : ''}">
-                ${part.relevant_docs.length} 
-                ${part.links.length > 0 ? `- <a href="${part.links[0]}" class="${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Search Pubmed</a>` : ''}
+                <div class="flex items-center">
+                    ${part.relevant_docs.length} 
+                      <!-- Refresh Button (stays on the right of the document count) -->
+                    <button class="refresh-button ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
+                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
+                    </button>
+                    ${part.links.length > 0 ? `   <a href="${part.links[0]}" class="pl-4 ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Search Pubmed</a>` : ''}
+                  
+                </div>
             </td>
         </tr>
     `;

@@ -7,7 +7,7 @@ const DELETE_SLUG = '/delete-sources';
 const EXTRACT_TEXT_SLUG = '/extract-text';
 const REFRESH_SEARCH_SLUG = '/extract-text/refresh-search';
 const GET_SLIDE_SLUG = '/get-slide';
-
+const GET_INDEXED_CHAPTERS_SLUG = '/process-pdf/indexed-chapters';
 /**
  * Fetches the Post-it notes from the API.
  * @returns {Promise<Array>} A promise that resolves to an array of notes.
@@ -137,7 +137,32 @@ async function fetchSlideData(subtopic, textContent) {
 }
 
 
+/**
+ * Fetches the indexed chapters for PDFs.
+ * @returns {Promise<Array>} A promise that resolves to an array of indexed chapters.
+ */
+async function fetchIndexedChapters() {
+    try {
+        const response = await fetch(`${BASE_URL}${GET_INDEXED_CHAPTERS_SLUG}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch indexed chapters');
+        }
+
+        const data = await response.json(); // Parse the JSON data
+        return data;
+    } catch (error) {
+        console.error('Error fetching indexed chapters:', error);
+        return [];
+    }
+}
+ 
 
 
 // Export the functions for use in other modules
-export { fetchNotes, deleteNotes, extractText, refreshDocuments ,fetchSlideData};
+export { fetchNotes, deleteNotes, extractText, fetchIndexedChapters ,refreshDocuments ,fetchSlideData};
