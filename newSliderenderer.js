@@ -3,6 +3,14 @@ export function showContentPopup(data) {
     const popupHtml = `
     <div id="json-popup" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-all duration-500">
         <div id="popup-container" class="bg-white p-4 rounded-lg shadow-lg h-[80%] flex flex-col w-[500px] transition-all duration-500">
+            <!-- Close Button -->
+            <div class="relative">
+                <button id="close-popup" class="absolute top-0 right-0 text-gray-500 hover:text-gray-700">
+                    <i class="fa-solid fa-times fa-lg"></i>
+                </button>
+            </div>
+
+            <!-- Tabs and Content -->
             ${createTabs()}
             ${createSlidesContent(data.slides)}
             ${createQuizContent(data.quiz)}
@@ -10,7 +18,7 @@ export function showContentPopup(data) {
             ${createBloomsContent(data.blooms)}
         </div>
     </div>
-    `;
+`;
 
     // Append the popup to the body
     document.body.insertAdjacentHTML('beforeend', popupHtml);
@@ -19,6 +27,9 @@ export function showContentPopup(data) {
     initializeTabs();
     initializeSlideNavigation();
     initializeToggle();
+    document.getElementById('close-popup').addEventListener('click', () => {
+        document.getElementById('json-popup').remove();
+    });
 }
 
 function createTabs() {
@@ -34,7 +45,7 @@ function createTabs() {
 
 function createSlidesContent(slides) {
     return `
-    <div id="slides-content" class="tab-content-lm">
+    <div id="slides-content" class="tab-content-lm h-[calc(100%-50px)] overflow-hidden">
         <div class="flex justify-between items-start mb-4">
             <h2 class="text-lg font-semibold w-[300px]">${slides[0].title}</h2>
         </div>
@@ -46,7 +57,7 @@ function createSlidesContent(slides) {
             </label>
             <span id="toggle-label" class="ml-3 text-gray-700">Slideshow Off</span>
         </div>
-        <div id="json-content" class="w-full overflow-auto flex-1 bg-gray-100 rounded-lg p-4">
+        <div id="json-content" class="h-[calc(100%-70px)] w-full overflow-auto flex-1 bg-gray-100 rounded-lg p-4 ">
             ${slides[0].content.map(section => `
                 <div class="mb-4 animate-fade-in">
                     <h3 class="font-semibold text-gray-800">${section.heading}</h3>
@@ -57,13 +68,13 @@ function createSlidesContent(slides) {
             `).join('')}
         </div>
         <div id="slideshow-content" class="slideshow-content hidden flex-1 h-full flex flex-col items-center">
-            <div class="flex-1 w-full p-8 overflow-y-auto bg-blue-900 text-white rounded-lg">
+            <div class="w-full p-8 overflow-y-auto bg-blue-900 text-white rounded-lg">
                 ${slides[0].content.map((section, index) => `
                     <div class="slide ${index === 0 ? 'active animate-fade-in' : 'hidden'}">
                         <div class="sticky top-0 bg-blue-900 z-10">
                             <h3 class="text-2xl font-bold mb-4">${section.heading}</h3>
                         </div>
-                        <ul class="list-disc pl-5 text-lg leading-relaxed h-[200px] overflow-y-auto">
+                        <ul class="list-disc pl-5 text-lg leading-relaxed h-[194px] overflow-y-auto">
                             ${section.bullet_points.map(point => `<li class="mb-2">${point}</li>`).join('')}
                         </ul>
                         <div class="mt-8 text-sm text-gray-200 text-left">
