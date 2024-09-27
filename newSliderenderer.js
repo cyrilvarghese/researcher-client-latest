@@ -5,8 +5,8 @@ export function showContentPopup(data) {
         <div id="popup-container" class="bg-white p-4 rounded-lg shadow-lg h-[80%] flex flex-col w-[500px] transition-all duration-500">
             <!-- Close Button -->
             <div class="relative">
-                <button id="close-popup" class="absolute top-0 right-0 text-gray-500 hover:text-gray-700">
-                    <i class="fa-solid fa-times fa-lg"></i>
+                <button id="close-popup" class="cursor-pointer absolute top-0 right-0 text-gray-500 hover:text-gray-700">
+                   ✖
                 </button>
             </div>
 
@@ -47,7 +47,7 @@ function createSlidesContent(slides) {
     return `
     <div id="slides-content" class="tab-content-lm h-[calc(100%-50px)] overflow-hidden">
         <div class="flex justify-between items-start mb-4">
-            <h2 class="text-lg font-semibold w-[300px] truncate overflow-hidden">${slides[0].title}</h2>
+            <h2 class="text-lg font-semibold w-[300px] truncate overflow-hidden cursor-pointer">${slides[0].title}</h2>
         </div>
         <div class="flex flex-start items-center mb-4">
            <label class="relative inline-flex items-center cursor-pointer">

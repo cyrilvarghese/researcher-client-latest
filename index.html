@@ -59,8 +59,65 @@
                 </div>
 
                 <!-- Books Content (Hidden by Default) -->
-                <div id="books-container" class="tab-content hidden  h-[calc(100%-164px)]">
-                    <!-- Post-it notes for books will be dynamically inserted here -->
+                <div id="books-container" class="tab-content hidden  h-[calc(100%-164px)] overflow-y-auto">
+                    <div id="toc-container" class="p-4 bg-white shadow-md rounded-lg max-w-md mx-auto">
+                        <!-- Books Dropdown -->
+                        <div class="mb-4">
+                            <label for="book-dropdown" class="block text-gray-700 font-semibold mb-2">Select
+                                Book:</label>
+                            <select id="book-dropdown"
+                                class="block w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Book</option>
+                                <!-- Dummy Book Options -->
+                                <option value="book1">Book 1: Rooks 9th edition</option>
+                                <option value="book2">Book 2: Bolognia, Dermatology by Jean L. Bolognia</option>
+                                <option value="book3">Book 3: Fitzpatricks_Dermatology_in_General_Medicine_nodrm
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="chapter-dropdown" class="block text-gray-700 font-semibold mb-2">Select
+                                Part:</label>
+                            <select id="chapter-dropdown"
+                                class="block w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select Part</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="section-dropdown" class="block text-gray-700 font-semibold mb-2">Select
+                                Chapter:</label>
+                            <select id="section-dropdown"
+                                class="block w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                disabled>
+                                <option value="">Select Chapter</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="subsection-dropdown" class="block text-gray-700 font-semibold mb-2">Select
+                                Section:</label>
+                            <select id="subsection-dropdown"
+                                class="block w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                disabled>
+                                <option value="">Select section</option>
+                            </select>
+                        </div>
+
+                        <!-- Add Button -->
+                        <div class="mt-4 flex justify-end">
+                            <button id="add-item-btn"
+                                class="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600">
+                                Add To Sources
+                            </button>
+                        </div>
+
+                        <!-- List of Added Items -->
+                        <div id="toc-list" class="mt-6 space-y-4">
+                            <!-- Items will be dynamically added here -->
+                        </div>
+                    </div>
+
                 </div>
             </div>
 

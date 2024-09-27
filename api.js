@@ -8,6 +8,8 @@ const EXTRACT_TEXT_SLUG = '/extract-text';
 const REFRESH_SEARCH_SLUG = '/extract-text/refresh-search';
 const GET_SLIDE_SLUG = '/get-slide';
 const GET_INDEXED_CHAPTERS_SLUG = '/process-pdf/indexed-chapters';
+const GET_TOC_SLUG = '/process-pdf/toc';
+
 /**
  * Fetches the Post-it notes from the API.
  * @returns {Promise<Array>} A promise that resolves to an array of notes.
@@ -26,6 +28,23 @@ async function fetchNotes() {
     }
 }
 
+/**
+ * Fetches the Table of Contents (TOC) from the API.
+ * @returns {Promise<Object>} A promise that resolves to the TOC data.
+ */
+export async function fetchTOC() {
+    try {
+        const response = await fetch(`${BASE_URL}${GET_TOC_SLUG}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch TOC');
+        }
+        const tocData = await response.json();
+        return tocData;
+    } catch (error) {
+        console.error('Error fetching TOC:', error);
+        return null;
+    }
+}
 /**
  * Deletes all Post-it notes via the API.
  * @returns {Promise<void>} A promise that resolves when the deletion is complete.

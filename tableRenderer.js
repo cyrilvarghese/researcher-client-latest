@@ -270,7 +270,7 @@ function generateTableRow(compIndex, partIndex, part) {
                         <button class="attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
                             <i class="fa-solid fa-paperclip"></i>
                         </button>
-                        <input type="file" class="hidden file-input" accept="image/*" data-comp-index="${compIndex}" data-part-index="${partIndex}">
+                        <input type="file" class="hidden file-input" multiple accept="image/*" data-comp-index="${compIndex}" data-part-index="${partIndex}">
                     </div>
                     <!-- Presentation Slides Button -->
                     <button class="slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
