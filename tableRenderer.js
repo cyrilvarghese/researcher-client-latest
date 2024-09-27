@@ -31,7 +31,7 @@ export function renderExtractedDataTable(data) {
             <thead>
                 <tr class="bg-gray-100">
                     <th class="border border-gray-300 p-2 text-left">Subtopic</th>
-                    <th class="border border-gray-300 p-2 text-left">Documents Found</th>
+                    <th class="border border-gray-300 p-2 pl-6 text-left">Search</th>
                 </tr>
             </thead>
             <tbody id="table-body">
@@ -117,8 +117,9 @@ function initializeDocViewHandlers() {
         });
     });
 
-
-
+    // Object to store the file URLs mapped to subtopics (using comp-index and part-index as unique keys)
+    const subtopicFileUrls = {};
+    // Listen for attach button click
     document.addEventListener('click', function (event) {
         if (event.target.closest('.attach-button')) {
             const button = event.target.closest('.attach-button');
@@ -135,9 +136,36 @@ function initializeDocViewHandlers() {
     document.addEventListener('change', function (event) {
         if (event.target.classList.contains('file-input')) {
             const files = event.target.files;
+            const compIndex = event.target.getAttribute('data-comp-index');
+            const partIndex = event.target.getAttribute('data-part-index');
+            const subtopicKey = `${compIndex}-${partIndex}`;
+
             if (files.length > 0) {
                 console.log('Files attached:', files);
-                // Handle the file upload logic here
+
+                // Initialize the subtopic's file list if not already done
+                if (!subtopicFileUrls[subtopicKey]) {
+                    subtopicFileUrls[subtopicKey] = [];
+                }
+
+                // Loop over each file and generate a dummy URL
+                for (const file of files) {
+                    // Generate a temporary URL for the file (later this would be replaced by an Azure bucket URL)
+                    const fileUrl = URL.createObjectURL(file);
+                    subtopicFileUrls[subtopicKey].push(fileUrl);
+                }
+
+                // Update the file count next to the attach icon
+                const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+                if (fileCountElement) {
+                    fileCountElement.textContent = `(${subtopicFileUrls[subtopicKey].length})`;
+                }
+
+                // Log the updated subtopic-to-file mapping
+                console.log(`Updated file list for subtopic ${subtopicKey}:`, subtopicFileUrls[subtopicKey]);
+
+                // If you want to display the file URLs in the UI, you could add logic here to render them.
+                // For example, append the file URLs to a subtopic-specific list in the UI.
             }
         }
     });
@@ -262,15 +290,27 @@ function generateTableRow(compIndex, partIndex, part) {
             <td class="border border-gray-300 p-2 text-left">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
-                        <p class="font-semibold mr-2">${part.name}</p>
+                    
+                        <p class="font-semibold mr-2 truncate w-[300px]">${part.name}</p>
+                        <!-- Refresh Button (stays on the right of the document count) -->
+                        
                         ${part.relevant_docs.length > 0 ?
-            `<a href="#" class="text-blue-500 underline view-docs-link mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs</a>`
+            `<a href="#" class="text-blue-500 underline view-docs-link mr-2 ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs (${part.relevant_docs.length})</a>
+                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
+                                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
+                                    </button>`
             : ''}
+                      
+                        
                         <!-- Attach Icon with Hidden File Input next to View Docs -->
                         <button class="attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
                             <i class="fa-solid fa-paperclip"></i>
                         </button>
-                        <input type="file" class="hidden file-input" multiple accept="image/*" data-comp-index="${compIndex}" data-part-index="${partIndex}">
+                        <div>
+                          <!-- File Count Span with Data Attributes -->
+                        <span class="file-count ml-1" data-comp-index="${compIndex}" data-part-index="${partIndex}">(0)</span> <!-- Initial file count -->
+                            <input type="file" class="hidden file-input" multiple accept="image/*" data-comp-index="${compIndex}" data-part-index="${partIndex}">
+                        </div>        
                     </div>
                     <!-- Presentation Slides Button -->
                     <button class="slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
@@ -280,11 +320,7 @@ function generateTableRow(compIndex, partIndex, part) {
             </td>
             <td class="border border-gray-300 p-2 text-left ${part.relevant_docs.length === 0 ? 'text-red-500' : ''}">
                 <div class="flex items-center">
-                    ${part.relevant_docs.length} 
-                      <!-- Refresh Button (stays on the right of the document count) -->
-                    <button class="refresh-button ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
-                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
-                    </button>
+                   
                     ${part.links.length > 0 ? `   <a href="${part.links[0]}" class="pl-4 ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Search Pubmed</a>` : ''}
                   
                 </div>
