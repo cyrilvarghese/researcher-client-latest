@@ -299,7 +299,10 @@ function generateTableRow(compIndex, partIndex, part) {
                         <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
                                         <i class="fa-solid fa-sync-alt text-gray-500"></i>
                                     </button>`
-            : ''}
+            : `<a href="#" class="text-red-500 underline view-docs-link mr-2 ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs (${part.relevant_docs.length})</a>
+                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
+                                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
+                                    </button>`}
                       
                         
                         <!-- Attach Icon with Hidden File Input next to View Docs -->
@@ -321,7 +324,7 @@ function generateTableRow(compIndex, partIndex, part) {
             <td class="border border-gray-300 p-2 text-left ${part.relevant_docs.length === 0 ? 'text-red-500' : ''}">
                 <div class="flex items-center">
                    
-                    ${part.links.length > 0 ? `   <a href="${part.links[0]}" class="pl-4 ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Search Pubmed</a>` : ''}
+                    ${part.links.length > 0 ? `   <a href="${part.links[0]}" class="pl-4 ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Pubmed Link</a>` : ''}
                   
                 </div>
             </td>
