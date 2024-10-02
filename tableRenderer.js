@@ -2,6 +2,10 @@
 
 import { refreshDocuments, fetchSlideData } from './api.js'; // Import the refreshDocuments function
 import { showContentPopup } from './newSliderenderer.js';
+import { openAddSubtopicModal } from './addSubtopic.js';
+import { createTableWithAddButton, createAddSubtopicModal, createDocsModal } from './htmlComponents.js';
+
+
 // Store data globally within the module
 let globalData = [];
 
@@ -24,43 +28,18 @@ export function renderExtractedDataTable(data) {
         ).join('')
     ).join('');
 
-    // Insert the updated content into the div
+    // Insert the table with "Add Subtopic" button
     templateDiv.innerHTML = `
-        <h2 class="text-xl font-semibold mb-4 w-full text-left">${topicTitle}</h2>
-        <table class="w-full border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="border border-gray-300 p-2 text-left">Subtopic</th>
-                    <th class="border border-gray-300 p-2 pl-6 text-left">Search</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                ${tableRows}
-            </tbody>
-        </table>
-
-        <!-- Scrim Layer -->
-        <div id="scrim-layer" class="fixed inset-0 bg-black opacity-50 hidden z-10"></div>
-
-        <!-- Modal for displaying documents -->
-        <div id="docs-modal" class="fixed z-20 inset-0 overflow-y-auto hidden text-left">
-            <div class="flex items-center justify-center min-h-screen px-4">
-                <div class="bg-white rounded-lg shadow-lg p-8 max-w-3xl w-full relative">
-                    <div class="mb-4">
-                        <h3 class="text-xl font-semibold mb-2">Relevant Documents</h3>
-                        <button class="absolute top-0 right-0 m-4 text-gray-600" id="close-docs-btn">✖</button>
-                    </div>
-                    <div id="docs-container" class="space-y-4 breal-all">
-                        <!-- Post-it notes for docs will be inserted here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+    ${createTableWithAddButton(topicTitle, tableRows)}
+    ${createDocsModal()}
+    ${createAddSubtopicModal()}
+    `;;
 
     // Initialize event handlers after the DOM has been updated
     initializeDocViewHandlers();
     initializeRefreshHandlers(); // Initialize refresh button handlers
+
+
 }
 
 /**
@@ -75,6 +54,40 @@ function initializeDocViewHandlers() {
             showDocs(compIndex, partIndex);
         });
     });
+
+    // Initial compIndex and partIndex
+    let compIndex = 100;
+    let partIndex = 1;
+
+    document.getElementById('add-subtopic-btn').addEventListener('click', () => {
+        openAddSubtopicModal(async (refreshedPart) => {
+            try {
+                // Use dummy values if some fields are missing in refreshedPart
+                const part = {
+                    name: refreshedPart.name || 'New Subtopic',
+                    relevant_docs: refreshedPart.relevant_docs || [],
+                    links: refreshedPart.links || ['https://example.com'] // Dummy link if none provided
+                };
+
+                // Generate the new table row with compIndex and partIndex
+                const newTableRow = generateTableRow(compIndex, partIndex, part);
+
+                // Insert the new row into the table's body (append as the last row)
+                const tableBody = document.getElementById('table-body');
+                tableBody.insertAdjacentHTML('beforeend', newTableRow);
+
+                // Optionally, update local storage with the refreshed part data
+                updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart);
+
+                // Increment partIndex for the next subtopic
+                partIndex++;
+
+            } catch (error) {
+                console.error('Error adding the new subtopic row:', error);
+            }
+        });
+    });
+
 
     document.getElementById('close-docs-btn').addEventListener('click', closeDocs);
 
@@ -271,14 +284,31 @@ function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart
     if (storedData) {
         storedData = JSON.parse(storedData);
 
-        // Update the specific part in the data
-        storedData.competencies[compIndex].parts[partIndex] = refreshedPart;
+        // Check if the competency exists in storedData
+        if (!storedData.competencies[compIndex]) {
+            // If the competency doesn't exist, initialize it with an empty parts array
+            storedData.competencies[compIndex] = {
+                parts: []
+            };
+        }
+
+        // Check if the partIndex exists in the parts array
+        if (storedData.competencies[compIndex].parts[partIndex]) {
+            // Update the specific part if it exists
+            storedData.competencies[compIndex].parts[partIndex] = refreshedPart;
+        } else {
+            // If the part doesn't exist, add it to the parts array
+            storedData.competencies[compIndex].parts.push(refreshedPart);
+        }
 
         // Store the updated data back into localStorage
         localStorage.setItem(fileName, JSON.stringify(storedData));
 
-        //update global variable after updating local Storage
+        // Update global variable after updating localStorage
         globalData = storedData;
+    }
+    else {
+        console.log("no LO found")
     }
 
 
