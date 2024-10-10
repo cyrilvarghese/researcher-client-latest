@@ -38,7 +38,7 @@ export function createTableWithAddButton(topicTitle, tableRows) {
     return `
         <h2 class="text-xl font-semibold mb-4 w-full text-left flex justify-between">
             ${topicTitle}
-            <button id="add-subtopic-btn" class="text-sm bg-blue-600 text-white p-2 rounded-md shadow flex items-center">
+            <button id="add-subtopic-btn" class="text-sm bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
                 <i class="fa-solid fa-plus mr-2"></i>Add Subtopic
             </button>
         </h2>
@@ -68,13 +68,64 @@ export function createDocsModal() {
                 <div class="bg-white rounded-lg shadow-lg p-8 max-w-3xl w-full relative">
                     <div class="mb-4">
                         <h3 class="text-xl font-semibold mb-2">Relevant Documents</h3>
-                        <button class="absolute top-0 right-0 m-4 text-gray-600" id="close-docs-btn">✖</button>
+                        <button class="absolute top-0 right-0 m-4 text-gray-600" id="close-docs-btn">
+                            <i class="fa-solid fa-close"></i>
+                        </button>
                     </div>
-                    <div id="docs-container" class="space-y-4 break-all">
-                        <!-- Post-it notes for docs will be inserted here -->
+
+                    <div class="flex justify-start space-x-4 border-b   mb-4">
+                        <button id="books-tab-btn" class="tab-button border-b-2 border-blue-500 text-blue-500">Docs from Books</button>
+                        <button id="links-tab-btn" class="tab-button text-gray-500 hover:text-blue-500">Docs from Links</button>
+                    </div>
+
+                    <!-- Tab content -->
+                    <div id="docs-content">
+                        <!-- Books Content -->
+                        <div id="docs-books" class="tab-content space-y-4 break-all">
+                            <!-- Books documents will be inserted here -->
+                        </div>
+
+                        <!-- Links Content -->
+                        <div id="docs-links" class="tab-content space-y-4 break-all hidden">
+                            <!-- Links documents will be inserted here -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     `;
+}
+
+
+/**
+ * Creates a gallery of images from the uploaded blob URLs.
+ * @param {Array<string>} blobUrls - Array of URLs pointing to the uploaded images.
+ */
+export function createImageGallery(blobUrls) {
+    // Get the gallery container or create a new one if it doesn't exist
+    let galleryContainer = document.getElementById('image-gallery');
+
+    if (!galleryContainer) {
+        galleryContainer = document.createElement('div');
+        galleryContainer.id = 'image-gallery';
+        galleryContainer.classList.add('grid', 'grid-cols-3', 'gap-4', 'p-4');
+        document.body.appendChild(galleryContainer);
+    }
+
+    // Clear any existing images in the gallery
+    galleryContainer.innerHTML = '';
+
+    // Loop through the blob URLs and create img elements
+    blobUrls.forEach((url) => {
+        const imageWrapper = document.createElement('div');
+        imageWrapper.classList.add('p-2', 'border', 'border-gray-300', 'rounded', 'shadow-md', 'overflow-hidden');
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'Uploaded Image';
+        img.classList.add('w-full', 'h-32', 'object-cover', 'rounded'); // Small-sized image for gallery display
+
+        imageWrapper.appendChild(img);
+        galleryContainer.appendChild(imageWrapper);
+    });
 }

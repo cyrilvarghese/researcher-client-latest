@@ -29,7 +29,7 @@ export async function renderBooks() {
                  ${book.file_name} <span class="ml-4 pt-1 text-sm chapter-count"> (0)</span> 
             </div>
  
-            <div class="chapter-list   ease-in-out opacity-0 max-h-0  text-sm pl-4">
+            <div class="chapter-list  overflow-auto  ease-in-out opacity-0 max-h-0  text-sm pl-4">
                 ${book.chapter_names.map((chapter, index) => `
                     <div class="flex items-start mt-4"> <!-- Added margin for spacing between chapters -->
                         <input type="checkbox" class="chapter-checkbox mr-2 mt-1" data-book="${book.file_name}" data-chapter="${chapter}" id="checkbox-${book.file_name.replace(/\s+/g, '-')}-${index}">

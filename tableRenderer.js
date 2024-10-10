@@ -1,13 +1,25 @@
 // tableRenderer.js
 
-import { refreshDocuments, fetchSlideData } from './api.js'; // Import the refreshDocuments function
+import { refreshDocuments, fetchSlideData, uploadFiles } from './api.js'; // Import the refreshDocuments function
 import { showContentPopup } from './newSliderenderer.js';
+import { generateTableRow, updateMatchesLink, handleAugmentContext } from './tableRow.js';
 import { openAddSubtopicModal } from './addSubtopic.js';
 import { createTableWithAddButton, createAddSubtopicModal, createDocsModal } from './htmlComponents.js';
+import { initializeFileInputListener, openGallery } from './galleryManager.js';
 
-
-// Store data globally within the module
+// Private variable to hold our global data
 let globalData = [];
+
+// Function to update the global data
+export function updateGlobalData(newData) {
+    globalData = newData;
+}
+
+// Function to get the global data
+export function getGlobalData() {
+    return globalData;
+}
+
 
 /**
  * Renders the extracted data into the #learning-template-breakup div.
@@ -33,19 +45,44 @@ export function renderExtractedDataTable(data) {
     ${createTableWithAddButton(topicTitle, tableRows)}
     ${createDocsModal()}
     ${createAddSubtopicModal()}
-    `;;
+    `;
 
-    // Initialize event handlers after the DOM has been updated
-    initializeDocViewHandlers();
+    // Listen for attach button click
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('.attach-button')) {
+            const button = event.target.closest('.attach-button');
+            const compIndex = button.getAttribute('data-comp-index');
+            const partIndex = button.getAttribute('data-part-index');
+            const fileInput = document.querySelector(`.file-input[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+
+            // Trigger the file input
+            fileInput.click();
+        }
+    });
+    initializeDocViewHandlers(); // Initialize event handlers after the DOM has been updated
+
     initializeRefreshHandlers(); // Initialize refresh button handlers
 
-
+    initializeFileInputListener();  // Initialize the file input listener for tracking files and opening galleries
+    setupAugmentContextButtons();
+}
+function setupAugmentContextButtons() {
+    document.querySelectorAll('.augment-context-btn').forEach(button => {
+        // Remove any existing event listeners
+        button.removeEventListener('click', handleAugmentContext);
+        // Add the new event listener
+        button.addEventListener('click', handleAugmentContext);
+    });
 }
 
 /**
  * Initializes the event handlers for the "View Docs" links.
  */
 function initializeDocViewHandlers() {
+
+
+
+
     document.querySelectorAll('.view-docs-link').forEach(link => {
         link.addEventListener('click', (event) => {
             event.preventDefault();
@@ -132,56 +169,51 @@ function initializeDocViewHandlers() {
 
     // Object to store the file URLs mapped to subtopics (using comp-index and part-index as unique keys)
     const subtopicFileUrls = {};
-    // Listen for attach button click
-    document.addEventListener('click', function (event) {
-        if (event.target.closest('.attach-button')) {
-            const button = event.target.closest('.attach-button');
-            const compIndex = button.getAttribute('data-comp-index');
-            const partIndex = button.getAttribute('data-part-index');
-            const fileInput = document.querySelector(`.file-input[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
 
-            // Trigger the file input
-            fileInput.click();
-        }
-    });
 
-    // Listen for file input change
-    document.addEventListener('change', function (event) {
-        if (event.target.classList.contains('file-input')) {
-            const files = event.target.files;
-            const compIndex = event.target.getAttribute('data-comp-index');
-            const partIndex = event.target.getAttribute('data-part-index');
-            const subtopicKey = `${compIndex}-${partIndex}`;
+    // // Listen for file input change
+    // document.addEventListener('change', async (event) => {
+    //     if (event.target.classList.contains('file-input')) {
+    //         const files = event.target.files;
+    //         const compIndex = event.target.getAttribute('data-comp-index');
+    //         const partIndex = event.target.getAttribute('data-part-index');
+    //         const subtopicKey = `${compIndex}-${partIndex}`;
+    //         const subtopic = globalData.competencies[compIndex].parts[partIndex].name;
+    //         console.log(subtopic)
+    //         if (files.length > 0) {
+    //             console.log('Files attached:', files);
 
-            if (files.length > 0) {
-                console.log('Files attached:', files);
+    //             // Initialize the subtopic's file list if not already done
+    //             if (!subtopicFileUrls[subtopicKey]) {
+    //                 subtopicFileUrls[subtopicKey] = [];
+    //             }
 
-                // Initialize the subtopic's file list if not already done
-                if (!subtopicFileUrls[subtopicKey]) {
-                    subtopicFileUrls[subtopicKey] = [];
-                }
+    //             uploadFiles(files, "description", subtopic)
+    //                 .then(response => {
+    //                     console.log('Upload Success:', response);
+    //                     // Update the file count next to the attach icon
+    //                     const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+    //                     if (fileCountElement) {
+    //                         fileCountElement.textContent = response.azure_blob_urls.length
 
-                // Loop over each file and generate a dummy URL
-                for (const file of files) {
-                    // Generate a temporary URL for the file (later this would be replaced by an Azure bucket URL)
-                    const fileUrl = URL.createObjectURL(file);
-                    subtopicFileUrls[subtopicKey].push(fileUrl);
-                }
+    //                     }
 
-                // Update the file count next to the attach icon
-                const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-                if (fileCountElement) {
-                    fileCountElement.textContent = `(${subtopicFileUrls[subtopicKey].length})`;
-                }
+    //                 })
+    //                 .catch(error => {
+    //                     console.error('Error during upload:', error);
+    //                 });
+    //             // Loop over each file and generate a dummy URL
 
-                // Log the updated subtopic-to-file mapping
-                console.log(`Updated file list for subtopic ${subtopicKey}:`, subtopicFileUrls[subtopicKey]);
 
-                // If you want to display the file URLs in the UI, you could add logic here to render them.
-                // For example, append the file URLs to a subtopic-specific list in the UI.
-            }
-        }
-    });
+
+    //             // Log the updated subtopic-to-file mapping
+    //             console.log(`Updated file list for subtopic ${subtopicKey}:`, subtopicFileUrls[subtopicKey]);
+
+    //             // If you want to display the file URLs in the UI, you could add logic here to render them.
+    //             // For example, append the file URLs to a subtopic-specific list in the UI.
+    //         }
+    //     }
+    // });
 }
 
 /**
@@ -193,21 +225,22 @@ function initializeRefreshHandlers() {
             const compIndex = event.currentTarget.getAttribute('data-comp-index');
             const partIndex = event.currentTarget.getAttribute('data-part-index');
             const partName = globalData.competencies[compIndex].parts[partIndex].name; // Get the part name (subtopic)
+            const augmentedInfo = globalData.competencies[compIndex].parts[partIndex].augmentedInfo; // Get the part name (subtopic)
 
             const refreshIcon = event.currentTarget.querySelector('i'); // Select the icon element
             refreshIcon.classList.add('animate-spin'); // Add Tailwind's rotate class to indicate loading
 
             try {
                 // Call the API to refresh documents for this part
-                const refreshedPart = await refreshDocuments(partName);
+                const refreshedPart = await refreshDocuments(partName,augmentedInfo);
 
 
                 if (refreshedPart) {
+                    updateMatchesLink(compIndex, partIndex, refreshedPart);
                     // Update the corresponding data in localStorage
                     updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart);
 
-                    // Update the specific row with the new data
-                    updateTableRow(compIndex, partIndex, refreshedPart);
+
 
 
                 }
@@ -221,32 +254,153 @@ function initializeRefreshHandlers() {
     });
 }
 
+
+
+// show docs section----------------------------------------
+
 /**
  * Shows the documents for a given part index.
  * @param {number} compIndex - The index of the competency in the API response.
  * @param {number} partIndex - The index of the part in the API response.
  */
 function showDocs(compIndex, partIndex) {
-    const docsContainer = document.querySelector('#docs-container');
+
+    const docsBooksContainer = document.querySelector('#docs-books');
+    const docsLinksContainer = document.querySelector('#docs-links');
     const part = globalData.competencies[compIndex].parts[partIndex];
 
-    // Add the subtopic (part name) as a subtitle in the modal
     const subtopicName = part.name;
 
-    docsContainer.innerHTML = `
-        <h4 class="text-lg font-semibold mb-4">${subtopicName}</h4>
-        ${part.relevant_docs.map(doc => `
-            <div class="bg-blue-200 text-blue-900 p-4 rounded-md shadow-md">
-                <p class="text-sm break-all">${doc.page_content}</p>
-                <a href="${doc.metadata.source}/#:~:text=${encodeURIComponent(doc.page_content.split(' ').slice(0, 5).join(' '))}" class="text-blue-500 underline break-all" target="_blank">${doc.metadata.source}</a>
+    // Clear previous content
+    docsBooksContainer.innerHTML = '';
+    docsLinksContainer.innerHTML = '';
+
+    // Add the subtopic (part name) as a subtitle in both tabs
+    const booksTitle = `<h4 class="text-lg font-semibold mb-4">${subtopicName} (From Books)</h4>`;
+    const linksTitle = `<h4 class="text-lg font-semibold mb-4">${subtopicName} (From Links)</h4>`;
+
+    docsBooksContainer.innerHTML = booksTitle;
+    docsLinksContainer.innerHTML = linksTitle;
+
+    part.relevant_docs.forEach((doc, index) => {
+        const isUrl = doc.metadata.source.startsWith('http');
+        const docHtml = `
+            <div id="doc-${index}" class="bg-gray-100 text-gray-900 p-4 rounded-md shadow-md flex-col items-start mb-4 transition-all duration-200">
+                <div class="flex-col">
+                    <p class="text-sm break-all">${doc.page_content}</p>
+                    <a href="${doc.metadata.source}/#:~:text=${encodeURIComponent(doc.page_content.split(' ').slice(0, 5).join(' '))}" 
+                        class="text-blue-500 underline break-all" target="_blank">
+                        ${doc.metadata.source}
+                    </a>
+                </div>
+                <button data-index="${index}" class="delete-doc-btn mt-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                        >
+                    Delete
+                </button>
             </div>
-        `).join('')}
-    `;
+        `;
+
+        if (isUrl) {
+            docsLinksContainer.innerHTML += docHtml;
+        } else {
+            docsBooksContainer.innerHTML += docHtml;
+        }
+
+    });
+    // Add event listeners for delete buttons
+    document.querySelectorAll('.delete-doc-btn').forEach((btn) => {
+        btn.addEventListener('click', () => deleteDoc(compIndex, partIndex, btn.getAttribute('data-index'), globalData));
+    });
+    setupTabEventListeners();
+
+    // Show the books tab by default
+    document.querySelector('#books-tab-btn').click();
 
     // Show the scrim and modal
     document.querySelector('#scrim-layer').classList.remove('hidden');
     document.querySelector('#docs-modal').classList.remove('hidden');
 }
+// Add this function to handle document deletion
+function deleteDoc(compIndex, partIndex, docIndex, globalData) {
+    const docElement = document.getElementById(`doc-${docIndex}`);
+
+    if (docElement) {
+        // Add animation classes
+        docElement.classList.add('transition-all', 'duration-300', 'ease-in-out');
+
+        // Animate the height and opacity
+        docElement.style.height = `${docElement.offsetHeight}px`;
+        docElement.offsetHeight; // Force reflow
+        docElement.classList.add('h-0', 'opacity-0', 'overflow-hidden');
+
+        // Remove the element after animation completes
+        setTimeout(() => {
+            docElement.remove();
+
+            // Remove the document from the globalData structure
+            globalData.competencies[compIndex].parts[partIndex].relevant_docs.splice(docIndex, 1);
+
+            // Update the Matches link text
+            updateMatchesLink(compIndex, partIndex, globalData.competencies[compIndex].parts[partIndex]);
+            // Re-render the docs to ensure proper indexing
+            showDocs(compIndex, partIndex);
+            console.log('Updated relevant_docs:', globalData.competencies[compIndex].parts[partIndex].relevant_docs);
+        }, 300); // Match this with the duration-300 class
+    }
+}
+function setupTabEventListeners() {
+    document.getElementById('books-tab-btn').addEventListener('click', () => {
+        document.getElementById('docs-books').classList.remove('hidden');
+        document.getElementById('docs-links').classList.add('hidden');
+        document.getElementById('books-tab-btn').className = 'tab-button border-b-2 border-blue-500 text-blue-500';
+        document.getElementById('links-tab-btn').className = 'tab-button text-gray-500 hover:text-blue-500';
+    });
+
+    document.getElementById('links-tab-btn').addEventListener('click', () => {
+        document.getElementById('docs-books').classList.add('hidden');
+        document.getElementById('docs-links').classList.remove('hidden');
+        document.getElementById('links-tab-btn').className = 'tab-button border-b-2 border-blue-500 text-blue-500';
+        document.getElementById('books-tab-btn').className = 'tab-button text-gray-500 hover:text-blue-500';
+    });
+}
+// Function to toggle document selection
+function toggleDocSelection(relevantDocs, index, isChecked, compIndex, partIndex) {
+    const selectedDoc = relevantDocs[index];
+
+    // Create selected_docs array if it doesn't exist
+    if (!globalData.competencies[compIndex].parts[partIndex].selected_docs) {
+        globalData.competencies[compIndex].parts[partIndex].selected_docs = [];
+    }
+
+    let selectedDocs = globalData.competencies[compIndex].parts[partIndex].selected_docs;
+
+    if (isChecked) {
+        // Add the document to selected_docs
+        selectedDocs.push(selectedDoc);
+    } else {
+        // Remove the document from selected_docs
+        selectedDocs = selectedDocs.filter(doc => doc.text !== selectedDoc.text);
+    }
+
+    // Update the selected_docs in the global data structure
+    globalData.competencies[compIndex].parts[partIndex].selected_docs = selectedDocs;
+
+    // Update the UI
+    const docElement = document.getElementById(`doc-${index}`);
+    if (isChecked) {
+        docElement.classList.add('border-blue-500', 'bg-blue-200');
+        docElement.classList.remove('bg-gray-100');
+    } else {
+        docElement.classList.remove('border-blue-500', 'bg-blue-200');
+        docElement.classList.add('bg-gray-100');
+    }
+
+    console.log('Updated selected_docs:', globalData.competencies[compIndex].parts[partIndex].selected_docs);
+}
+
+//--------------------------
+
+
 
 /**
  * Closes the documents modal.
@@ -254,6 +408,7 @@ function showDocs(compIndex, partIndex) {
 function closeDocs() {
     document.querySelector('#scrim-layer').classList.add('hidden');
     document.querySelector('#docs-modal').classList.add('hidden');
+
 }
 
 
@@ -314,50 +469,3 @@ function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart
 
 }
 
-function generateTableRow(compIndex, partIndex, part) {
-    return `
-        <tr class="hover:bg-gray-100" data-comp-index="${compIndex}" data-part-index="${partIndex}">
-            <td class="border border-gray-300 p-2 text-left">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center">
-                    
-                        <p class="font-semibold mr-2 truncate w-[300px]">${part.name}</p>
-                        <!-- Refresh Button (stays on the right of the document count) -->
-                        
-                        ${part.relevant_docs.length > 0 ?
-            `<a href="#" class="text-blue-500 underline view-docs-link mr-2 ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs (${part.relevant_docs.length})</a>
-                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
-                                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
-                                    </button>`
-            : `<a href="#" class="text-red-500 underline view-docs-link mr-2 ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">View Docs (${part.relevant_docs.length})</a>
-                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
-                                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
-                                    </button>`}
-                      
-                        
-                        <!-- Attach Icon with Hidden File Input next to View Docs -->
-                        <button class="attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
-                            <i class="fa-solid fa-paperclip"></i>
-                        </button>
-                        <div>
-                          <!-- File Count Span with Data Attributes -->
-                        <span class="file-count ml-1" data-comp-index="${compIndex}" data-part-index="${partIndex}">(0)</span> <!-- Initial file count -->
-                            <input type="file" class="hidden file-input" multiple accept="image/*" data-comp-index="${compIndex}" data-part-index="${partIndex}">
-                        </div>        
-                    </div>
-                    <!-- Presentation Slides Button -->
-                    <button class="slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
-                        <i class="fa-solid fa-chalkboard"></i>
-                    </button>
-                </div>
-            </td>
-            <td class="border border-gray-300 p-2 text-left ${part.relevant_docs.length === 0 ? 'text-red-500' : ''}">
-                <div class="flex items-center">
-                   
-                    ${part.links.length > 0 ? `   <a href="${part.links[0]}" class="pl-4 ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Pubmed Link</a>` : ''}
-                  
-                </div>
-            </td>
-        </tr>
-    `;
-}

@@ -47,7 +47,7 @@ function createSlidesContent(slides) {
     return `
     <div id="slides-content" class="tab-content-lm h-[calc(100%-50px)] overflow-hidden">
         <div class="flex justify-between items-start mb-4">
-            <h2 class="text-lg font-semibold w-[300px] truncate overflow-hidden cursor-pointer">${slides[0].title}</h2>
+            <h2 class="text-lg font-semibold w-full truncate overflow-hidden cursor-pointer">${slides[0].title}</h2>
         </div>
         <div class="flex flex-start items-center mb-4">
            <label class="relative inline-flex items-center cursor-pointer">

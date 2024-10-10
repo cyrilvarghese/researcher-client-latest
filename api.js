@@ -9,6 +9,46 @@ const REFRESH_SEARCH_SLUG = '/extract-text/refresh-search';
 const GET_SLIDE_SLUG = '/get-slide';
 const GET_INDEXED_CHAPTERS_SLUG = '/process-pdf/indexed-chapters';
 const GET_TOC_SLUG = '/process-pdf/toc';
+const UPLOAD_STORE = '/upload-store';
+const AUGMENT_SUBTOPIC_SLUG = '/augment-subtopic';
+const EXTRACT_TEXT_STREAM_SLUG = '/extract-text-stream';
+
+/**
+ * Uploads files to the server along with a description.
+ * @param {FileList} files - The list of files selected by the user.
+ * @param {string} description - The description for the files.
+ * @param {string} subtopic - The subtopic name to upload.
+ * @returns {Promise<Object>} A promise that resolves to the uploaded response.
+ */
+async function uploadFiles(files, description, subtopic) {
+    try {
+
+        debugger
+        const formData = new FormData();
+        formData.append('subtopic_name', subtopic); // Subtopic field
+        formData.append('description', description); // Append description
+
+        // Append multiple files
+        Array.from(files).forEach((file) => {
+            formData.append('files', file);
+        });
+
+        const response = await fetch(`${BASE_URL}${UPLOAD_STORE}`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to upload files');
+        }
+
+        const responseData = await response.json();
+        return responseData;
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        return null;
+    }
+}
 
 /**
  * Fetches the Post-it notes from the API.
@@ -97,9 +137,9 @@ async function extractText(files) {
  * @param {number} partIndex - The index of the part within the competency.
  * @returns {Promise<Object>} A promise that resolves to the updated data.
  */
-async function refreshDocuments(partName) {
+async function refreshDocuments(partName, augmentedInfo = "") {
     try {
-        const response = await fetch(`${BASE_URL}${REFRESH_SEARCH_SLUG}?part_name=${encodeURIComponent(partName)}`, {
+        const response = await fetch(`${BASE_URL}${REFRESH_SEARCH_SLUG}?part_name=${encodeURIComponent(partName)}&augmented_info=${encodeURIComponent(augmentedInfo)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -180,8 +220,76 @@ async function fetchIndexedChapters() {
         return [];
     }
 }
- 
+/**
+ * Augments a subtopic by providing detailed information.
+ * @param {string} topic - The main topic to discuss.
+ * @param {string} subtopic - The subtopic to augment and explain.
+ * @returns {Promise<Object>} A promise that resolves to the augmented subtopic data.
+ */
+async function augmentSubtopic(topic, subtopic) {
+    try {
+        const queryParams = new URLSearchParams({
+            topic: topic,
+            subtopic: subtopic
+        });
+
+        const response = await fetch(`${BASE_URL}${AUGMENT_SUBTOPIC_SLUG}?${queryParams}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to augment subtopic');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error augmenting subtopic:', error);
+        throw error;
+    }
+}
 
 
 // Export the functions for use in other modules
-export { fetchNotes, deleteNotes, extractText, fetchIndexedChapters ,refreshDocuments ,fetchSlideData};
+export { fetchNotes, deleteNotes, extractText, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic };
+
+export async function* getTableData(formData, useStream = true) {
+    const response = await fetch(`${BASE_URL}${EXTRACT_TEXT_STREAM_SLUG}`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let buffer = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+            if (line.trim() === '') continue;
+
+            try {
+                const update = JSON.parse(line);
+                yield update;
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+            }
+        }
+    }
+}
