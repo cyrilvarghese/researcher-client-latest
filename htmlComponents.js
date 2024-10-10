@@ -36,11 +36,16 @@ export function createAddSubtopicModal() {
 // Function to generate the table with the "Add Subtopic" button
 export function createTableWithAddButton(topicTitle, tableRows) {
     return `
-        <h2 class="text-xl font-semibold mb-4 w-full text-left flex justify-between">
+        <h2 class="text-xl font-semibold mb-4 w-full text-left flex justify-between items-center">
             ${topicTitle}
-            <button id="add-subtopic-btn" class="text-sm bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
-                <i class="fa-solid fa-plus mr-2"></i>Add Subtopic
-            </button>
+            <div class="flex space-x-2">
+                <button id="add-to-summary-btn" class="hidden text-sm bg-gray-300 text-gray-700 p-4 rounded-md shadow flex items-center">
+                    <i class="fa-solid fa-file-lines mr-2"></i>Add to Summary
+                </button>
+                <button id="add-subtopic-btn" class="text-sm bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
+                    <i class="fa-solid fa-plus mr-2"></i>Add Subtopic
+                </button>
+            </div>
         </h2>
         <table class="w-full border-collapse border border-gray-300">
             <thead>

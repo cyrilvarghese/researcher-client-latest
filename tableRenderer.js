@@ -6,6 +6,7 @@ import { generateTableRow, updateMatchesLink, handleAugmentContext } from './tab
 import { openAddSubtopicModal } from './addSubtopic.js';
 import { createTableWithAddButton, createAddSubtopicModal, createDocsModal } from './htmlComponents.js';
 import { initializeFileInputListener, openGallery } from './galleryManager.js';
+import { initializeCheckboxHandler } from './subtopicChecboxHandler.js';
 
 // Private variable to hold our global data
 let globalData = [];
@@ -65,6 +66,7 @@ export function renderExtractedDataTable(data) {
 
     initializeFileInputListener();  // Initialize the file input listener for tracking files and opening galleries
     setupAugmentContextButtons();
+    initializeCheckboxHandler();// Initialize the checkbox handler
 }
 function setupAugmentContextButtons() {
     document.querySelectorAll('.augment-context-btn').forEach(button => {
@@ -225,18 +227,20 @@ function initializeRefreshHandlers() {
             const compIndex = event.currentTarget.getAttribute('data-comp-index');
             const partIndex = event.currentTarget.getAttribute('data-part-index');
             const partName = globalData.competencies[compIndex].parts[partIndex].name; // Get the part name (subtopic)
-            const augmentedInfo = globalData.competencies[compIndex].parts[partIndex].augmentedInfo; // Get the part name (subtopic)
+            const augmentedInfo = globalData.competencies[compIndex].parts[partIndex].augmented_info; // Get the part name (subtopic)
 
             const refreshIcon = event.currentTarget.querySelector('i'); // Select the icon element
             refreshIcon.classList.add('animate-spin'); // Add Tailwind's rotate class to indicate loading
 
             try {
                 // Call the API to refresh documents for this part
-                const refreshedPart = await refreshDocuments(partName,augmentedInfo);
+                const refreshedPart = await refreshDocuments(partName, augmentedInfo);
 
 
                 if (refreshedPart) {
                     updateMatchesLink(compIndex, partIndex, refreshedPart);
+                    // updateTableRow(compIndex, partIndex, refreshedPart);
+
                     // Update the corresponding data in localStorage
                     updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart);
 
@@ -414,6 +418,23 @@ function closeDocs() {
 
 // Function to update a specific row based on the refreshed part data
 function updateTableRow(compIndex, partIndex, refreshedPart) {
+    // Update global data
+    if (!globalData.competencies[compIndex]) {
+        globalData.competencies[compIndex] = { parts: [] };
+    }
+
+    if (globalData.competencies[compIndex].parts[partIndex]) {
+        // Update the specific part if it exists
+        globalData.competencies[compIndex].parts[partIndex] = refreshedPart;
+    } else {
+        // If the part doesn't exist, add it to the parts array
+        globalData.competencies[compIndex].parts.push(refreshedPart);
+    }
+
+    // Update localStorage
+    localStorage.setItem("templateData", JSON.stringify(globalData));
+
+    // Existing code to update the table row
     const rowSelector = `tr[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`;
     const tableRow = document.querySelector(rowSelector);
 
@@ -426,15 +447,26 @@ function updateTableRow(compIndex, partIndex, refreshedPart) {
         // Reattach event listeners for the new elements (View Docs and Refresh)
         initializeDocViewHandlers(); // Re-initialize document view handlers
         initializeRefreshHandlers(); // Re-initialize refresh button handlers
+        setupAugmentContextButtons();// Re-initialize augment context buttons
+
     }
 }
 
 function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart) {
-    // Get the first file's name used for the key in localStorage
-    const fileName = 'SLO scabies'; // Use the actual filename or a variable holding it
+    // Update global data
+    if (!globalData.competencies[compIndex]) {
+        globalData.competencies[compIndex] = { parts: [] };
+    }
 
+    if (globalData.competencies[compIndex].parts[partIndex]) {
+        // Update the specific part if it exists
+        globalData.competencies[compIndex].parts[partIndex] = refreshedPart;
+    } else {
+        // If the part doesn't exist, add it to the parts array
+        globalData.competencies[compIndex].parts.push(refreshedPart);
+    }
     // Retrieve the current data from localStorage
-    let storedData = localStorage.getItem(fileName);
+    let storedData = localStorage.getItem("templateData");
 
     if (storedData) {
         storedData = JSON.parse(storedData);
@@ -457,7 +489,7 @@ function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart
         }
 
         // Store the updated data back into localStorage
-        localStorage.setItem(fileName, JSON.stringify(storedData));
+        localStorage.setItem("templateData", JSON.stringify(storedData));
 
         // Update global variable after updating localStorage
         globalData = storedData;

@@ -7,8 +7,8 @@ export function generateTableRow(compIndex, partIndex, part) {
             <td class="border border-gray-300 p-2 text-left">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
-                    
-                        <p class="font-semibold mr-2 truncate w-[500px] sub-topic"  data-comp-index="${compIndex}" data-part-index="${partIndex}">${part.name}</p>
+                        <input type="checkbox" class="subtopic-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Select Subtopic">
+                        <p class="font-semibold mr-2 truncate w-[350px] sub-topic pr-4"  data-comp-index="${compIndex}" data-part-index="${partIndex}">${part.name}</p>
                          <!-- Augment Context Button (lightning bolt icon) -->
                         <button id="augment-context-${compIndex}-${partIndex}" 
                                 class="augment-context-btn p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" 
@@ -50,10 +50,17 @@ export function generateTableRow(compIndex, partIndex, part) {
                 </div>
             </td>
             <td class="border border-gray-300 p-2 text-left ${part.relevant_docs.length === 0 ? 'text-red-500' : ''}">
-                <div class="flex items-center">
-                   
-                    ${part.links.length > 0 ? `   <a href="${part.links[0]}" class="pl-4 ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} underline" target="_blank">Pubmed Link</a>` : ''}
-                  
+                <div class="flex items-center justify-center h-full relative group">
+                    ${part.links.length > 0 ? `
+                        <a href="${part.links[0]}" 
+                           class="  ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} flex items-center justify-center h-full w-full" 
+                           target="_blank">
+                            <i class="fas fa-search"></i>
+                            <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                Search on PubMed
+                            </span>
+                        </a>
+                    ` : ''}
                 </div>
             </td>
         </tr>
@@ -113,7 +120,7 @@ async function augmentContext(compIndex, partIndex) {
         const augmentedData = await augmentSubtopic(topic, subtopic);
 
         // Update the global data with the new augmented information
-        currentData.competencies[compIndex].parts[partIndex].augmentedInfo = augmentedData.augmented_response;
+        currentData.competencies[compIndex].parts[partIndex].augmented_info = augmentedData.augmented_response;
         updateGlobalData(currentData);
 
         return augmentedData;
@@ -143,8 +150,8 @@ function updateUIWithAugmentedData(compIndex, partIndex, augmentedData) {
         // If the augmented info div doesn't exist, replace the entire content
         const partName = element.textContent;
         const newHTML = `
-            <div class="flex flex-col sub-topic">
-                <a href="#" class="font-semibold text-blue-600 hover:text-blue-800 mr-2 truncate w-[500px] sub-topic" data-comp-index="${compIndex}" data-part-index="${partIndex}">${partName}</a>
+            <div class="flex flex-col">
+                <a href="#" class="font-semibold text-blue-600 hover:text-blue-800 mr-2 truncate w-[350px] sub-topic" data-comp-index="${compIndex}" data-part-index="${partIndex}">${partName}</a>
                 <div class="mt-2 w-full hidden" id="augmented-info-${compIndex}-${partIndex}">
                     <textarea class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm text-gray-700 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" rows="4">${augmentedData.augmented_response || 'No augmented information available.'}</textarea>
                 </div>
@@ -171,7 +178,7 @@ function updateUIWithAugmentedData(compIndex, partIndex, augmentedData) {
 
 function saveAugmentedInfo(compIndex, partIndex, newValue) {
     const currentData = getGlobalData();
-    currentData.competencies[compIndex].parts[partIndex].augmentedInfo = newValue;
+    currentData.competencies[compIndex].parts[partIndex].augmented_info = newValue;
     updateGlobalData(currentData);
     console.log('Augmented info updated and saved.');
 }

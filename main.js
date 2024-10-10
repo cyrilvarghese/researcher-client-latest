@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filename = 'SLO scabies'; // Replace with the actual filename or obtain it dynamically
 
     // Check if data for this file already exists
-    const dataExists = checkForExistingData(filename);
+    const dataExists = checkForExistingData("templateData");
 
     if (!dataExists) {
         init();
@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadButton = document.querySelector('#upload-button');
     uploadButton.addEventListener('click', () => {
         const fileInput = document.querySelector('#file-input');
+        fileInput.value = ''; // Clear the file input value
         fileInput.click();
     });
 
@@ -193,10 +194,10 @@ async function handleFileUpload(event) {
                 console.log('Parsed Data:', data);
 
                 // Store the parsed data in localStorage with the file name (without extension) as the key
-                localStorage.setItem(fileName, JSON.stringify(data));
+                localStorage.setItem("templateData", JSON.stringify(data));
 
                 // Render the table with the parsed data
-                await renderExtractedDataTable(data, false);
+                renderExtractedDataTable(data, false);
             } else {
                 console.log('No data returned from extract-text API.');
             }
@@ -210,14 +211,13 @@ async function handleFileUpload(event) {
 }
 
 
-function checkForExistingData(filename) {
-    const fileNameWithoutExt = filename.split('.').slice(0, -1).join('.');
+function checkForExistingData(key) {
 
-    const storedData = localStorage.getItem(filename);
+    const storedData = localStorage.getItem(key);
 
     if (storedData) {
         const data = JSON.parse(storedData);
-        console.log(`Data found for ${fileNameWithoutExt}:`, data);
+        console.log(`Data found for ${data["Main Topic"]}:`, data);
         const emptyState = document.getElementById('empty-state');
         const learningTemplateBreakup = document.getElementById('learning-template-breakup');
 
