@@ -22,12 +22,14 @@ export function setButtonLoadingState(button, isLoading, options = {}) {
 
     if (isLoading) {
         button.disabled = true;
+        button.classList.remove('hover:bg-blue-600');
         button.classList.add(loadingClass, 'cursor-not-allowed');
         if (defaultClass) button.classList.remove(defaultClass);
         button.innerHTML = `<i class="${loadingIcon} mr-2"></i>${loadingText}`;
     } else {
         button.disabled = false;
         button.classList.remove(loadingClass, 'cursor-not-allowed');
+        button.classList.add('hover:bg-blue-600');
         if (defaultClass) button.classList.add(defaultClass);
         button.innerHTML = defaultIcon ? `<i class="fa-solid ${defaultIcon} mr-2"></i>${defaultText}` : defaultText;
     }
@@ -53,5 +55,32 @@ export function showLoadingState() {
         if (icon) {
             icon.className = 'fas fa-spinner fa-spin fa-3x mb-4 text-gray-400';
         }
+    }
+}
+
+/**
+ * Shows or hides a loading state in the empty state container
+ * @param {boolean} isLoading - True to show loading state, false to show default state
+ */
+export function toggleLoadingState(isLoading) {
+    const emptyStateContainer = document.getElementById('empty-state');
+    if (emptyStateContainer) {
+        const heading = emptyStateContainer.querySelector('h2');
+        const paragraph = emptyStateContainer.querySelector('p');
+        const icon = emptyStateContainer.querySelector('i');
+
+        if (isLoading) {
+            // Show loading state
+            if (heading) heading.textContent = 'Loading the Learning Template';
+            if (paragraph) paragraph.textContent = 'Please wait while we prepare your learning experience.';
+            if (icon) icon.className = 'fas fa-spinner fa-spin fa-3x mb-4 text-gray-400';
+        } else {
+            // Show default state
+            if (heading) heading.textContent = 'No Learning Template Available';
+            if (paragraph) paragraph.textContent = 'Please upload a learning template to get started.';
+            if (icon) icon.className = 'fas fa-file-upload fa-3x mb-4 text-gray-400';
+        }
+
+        emptyStateContainer.classList.remove('hidden');
     }
 }

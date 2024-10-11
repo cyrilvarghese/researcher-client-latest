@@ -6,7 +6,7 @@ import { initTabs } from './tabsModule.js';
 import { initTOCDropdowns } from './tocDropdowns.js';
 import { renderBooks } from './booksRenderer.js';
 import { renderStreamedTable } from './streamedTableRenderer.js';
-import { setButtonLoadingState, showLoadingState } from './utils.js';
+import { setButtonLoadingState, toggleLoadingState } from './utils.js';
 
 // Switch flag to toggle between streamed and non-streamed versions
 const USE_STREAMING = false;
@@ -131,7 +131,7 @@ function renderEmptyState() {
 async function handleFileUpload(event) {
     event.preventDefault();
     const files = document.getElementById('file-input').files;
-    showLoadingState();
+    toggleLoadingState(true);
 
     if (files.length === 0) {
         alert('Please select at least one file.');
@@ -183,7 +183,8 @@ async function handleFileUpload(event) {
         console.error('Error processing files:', error);
         alert('An error occurred while processing the files. Please try again.');
     } finally {
-        setButtonLoadingState(uploadButton, false,{defaultText:"Upload",defaultIcon:"fa-upload"}); // Remove loading state
+        setButtonLoadingState(uploadButton, false, { defaultText: "Upload", defaultIcon: "fa-upload" }); // Remove loading state
+        toggleLoadingState(false);
     }
 }
 

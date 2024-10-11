@@ -1,7 +1,8 @@
 import { refreshDocuments } from './api.js'; // Import the refreshDocuments function
-import { getGlobalData } from './globalData.js'; // Import the getGlobalData function
+import { getGlobalData } from './tableRenderer.js'; // Import the getGlobalData function
 import { generateTableRow } from './tableRow.js'; // Assuming these functions are in a separate file
 import { updateLocalStorageWithRefreshedPart } from './tableRenderer.js';
+import { setButtonLoadingState } from './utils.js';
 /**
  * Opens the "Add Subtopic" modal and handles the subtopic save.
  * @param {function} onSaveCallback - A callback function to run when the subtopic is successfully saved.
@@ -31,6 +32,8 @@ function handleClose() {
 }
 
 export async function saveSubtopic() {
+    const saveSubtopicBtn = document.getElementById('save-subtopic-btn');
+    setButtonLoadingState(saveSubtopicBtn, true, { loadingClass: "hover:bg-gray-400" });
     const subtopicInput = document.getElementById('subtopic-input');
     const subtopicName = subtopicInput.value.trim();
 
@@ -42,7 +45,7 @@ export async function saveSubtopic() {
             if (refreshedPart) {
                 // Run the callback if save is successful
                 handleRefreshedPart(refreshedPart);
-
+                setButtonLoadingState(saveSubtopicBtn, false, { defaultText: "Save" });
 
             }
         } catch (error) {
@@ -73,7 +76,16 @@ export function handleRefreshedPart(refreshedPart) {
     try {
         // Get the global data
         let customCompIndex = getGlobalData().competencies.length;
-        let currentCustomPartIndex = getGlobalData().competencies[customCompIndex].parts.length;
+        if (getGlobalData().competencies[customCompIndex - 1].competency === "Custom") {
+            customCompIndex = customCompIndex - 1;
+        }
+        else {
+            customCompIndex = getGlobalData().competencies.length;
+        }
+        let currentCustomPartIndex = 0;
+        if (getGlobalData().competencies[customCompIndex]) {
+            currentCustomPartIndex = getGlobalData().competencies[customCompIndex].parts.length;
+        }
 
         // Use dummy values if some fields are missing in refreshedPart
         const part = {
@@ -87,7 +99,7 @@ export function handleRefreshedPart(refreshedPart) {
 
         // Insert the new row into the table's body (append as the last row)
         const tableBody = document.getElementById('table-body');
-        tableBody.insertAdjacentHTML('beforeend', newTableRow);
+        tableBody.insertAdjacentHTML('afterbegin', newTableRow);
 
         // Optionally, update local storage with the refreshed part data
         updateLocalStorageWithRefreshedPart(customCompIndex, currentCustomPartIndex, refreshedPart);

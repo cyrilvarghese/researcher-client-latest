@@ -459,8 +459,9 @@ function updateTableRow(compIndex, partIndex, refreshedPart) {
 export function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart) {
     // Update global data
     if (!globalData.competencies[compIndex]) {
-        globalData.competencies[compIndex] = { parts: [] };
+        globalData.competencies[compIndex] = { competency: "Custom", parts: [] };
     }
+
 
     if (globalData.competencies[compIndex].parts[partIndex]) {
         // Update the specific part if it exists
@@ -469,38 +470,11 @@ export function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refres
         // If the part doesn't exist, add it to the parts array
         globalData.competencies[compIndex].parts.push(refreshedPart);
     }
-    // Retrieve the current data from localStorage
-    let storedData = localStorage.getItem("templateData");
 
-    if (storedData) {
-        storedData = JSON.parse(storedData);
 
-        // Check if the competency exists in storedData
-        if (!storedData.competencies[compIndex]) {
-            // If the competency doesn't exist, initialize it with an empty parts array
-            storedData.competencies[compIndex] = {
-                parts: []
-            };
-        }
+    // Store the updated data back into localStorage
+    localStorage.setItem("templateData", JSON.stringify(globalData));
 
-        // Check if the partIndex exists in the parts array
-        if (storedData.competencies[compIndex].parts[partIndex]) {
-            // Update the specific part if it exists
-            storedData.competencies[compIndex].parts[partIndex] = refreshedPart;
-        } else {
-            // If the part doesn't exist, add it to the parts array
-            storedData.competencies[compIndex].parts.push(refreshedPart);
-        }
-
-        // Store the updated data back into localStorage
-        localStorage.setItem("templateData", JSON.stringify(storedData));
-
-        // Update global variable after updating localStorage
-        globalData = storedData;
-    }
-    else {
-        console.log("no LO found")
-    }
 
 
 }

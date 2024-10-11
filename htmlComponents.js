@@ -15,10 +15,9 @@ export function createAddSubtopicModal() {
                         <button class="absolute top-0 right-0 m-4 text-gray-600" id="close-add-subtopic-btn">✖</button>
                     </div>
                     <div class="mb-4">
-                        <label for="subtopic-input" class="block text-gray-700 font-semibold">New Subtopic:</label>
                         <input type="text" id="subtopic-input" class="block w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
                     </div>
-                   <div class="flex justify-end">
+                   <div class="flex justify-start">
                         <button id="save-subtopic-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center">
                             <svg id="loading-spinner" class="hidden animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -42,7 +41,7 @@ export function createTableWithAddButton(topicTitle, tableRows) {
                 <button id="add-to-summary-btn" class="hidden text-sm bg-gray-300 text-gray-700 p-4 rounded-md shadow flex items-center">
                     <i class="fa-solid fa-file-lines mr-2"></i>Create Summary Slide
                 </button>
-                <button id="add-subtopic-btn" class="text-sm bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
+                <button id="add-subtopic-btn" class=" hover:bg-blue-600 text-sm bg-blue-500 text-white p-4 rounded-md shadow flex items-center">
                     <i class="fa-solid fa-plus mr-2"></i>Add Subtopic
                 </button>
             </div>
