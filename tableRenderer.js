@@ -48,26 +48,18 @@ export function renderExtractedDataTable(data) {
     ${createAddSubtopicModal()}
     `;
 
-    // Listen for attach button click
-    document.addEventListener('click', function (event) {
-        if (event.target.closest('.attach-button')) {
-            const button = event.target.closest('.attach-button');
-            const compIndex = button.getAttribute('data-comp-index');
-            const partIndex = button.getAttribute('data-part-index');
-            const fileInput = document.querySelector(`.file-input[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-
-            // Trigger the file input
-            fileInput.click();
-        }
-    });
-    initializeDocViewHandlers(); // Initialize event handlers after the DOM has been updated
-
-    initializeRefreshHandlers(); // Initialize refresh button handlers
-
-    initializeFileInputListener();  // Initialize the file input listener for tracking files and opening galleries
-    setupAugmentContextButtons();
-    initializeCheckboxHandler();// Initialize the checkbox handler
+    initializeAllEventHandlers(); // Initialize all event handlers after the DOM has been updated
 }
+
+function initializeAllEventHandlers() {
+    initializeDocViewHandlers();
+    initializeRefreshHandlers();
+    initializeFileInputListener();
+    setupAugmentContextButtons();
+    initializeCheckboxHandler();
+    initializeAddSubtopicButton();
+}
+
 function setupAugmentContextButtons() {
     document.querySelectorAll('.augment-context-btn').forEach(button => {
         // Remove any existing event listeners
@@ -77,13 +69,60 @@ function setupAugmentContextButtons() {
     });
 }
 
+//-----------------------------------
+// Define the handler function
+function handleAddSubtopic() {
+    // Initial compIndex and partIndex
+    let customCompIndex = getGlobalData().competencies.length;
+    let currentCustomPartIndex = 1;
+    openAddSubtopicModal(async (refreshedPart) => {
+        try {
+            // Use dummy values if some fields are missing in refreshedPart
+            const part = {
+                name: refreshedPart.name || 'New Subtopic',
+                relevant_docs: refreshedPart.relevant_docs || [],
+                links: refreshedPart.links || ['https://example.com'] // Dummy link if none provided
+            };
+
+            // Generate the new table row with compIndex and partIndex
+            const newTableRow = generateTableRow(customCompIndex, currentCustomPartIndex, part);
+
+            // Insert the new row into the table's body (append as the last row)
+            const tableBody = document.getElementById('table-body');
+            tableBody.insertAdjacentHTML('beforeend', newTableRow);
+
+            // Optionally, update local storage with the refreshed part data
+            updateLocalStorageWithRefreshedPart(customCompIndex, currentCustomPartIndex, refreshedPart);
+
+            // Increment partIndex for the next subtopic
+            currentCustomPartIndex++;
+
+        } catch (error) {
+            console.error('Error adding the new subtopic row:', error);
+        }
+    });
+}
+
+//-----------------------------------
+function initializeSlidesButtons() {
+    document.querySelectorAll('.slides-button').forEach(button => {
+        button.addEventListener('click', handleSlidesButtonClick);
+    });
+}
+
+function initializeAddSubtopicButton() {
+    const addSubtopicBtn = document.getElementById('add-subtopic-btn');
+
+    // Remove existing event listener
+    addSubtopicBtn.removeEventListener('click', handleAddSubtopic);
+
+    // Add new event listener
+    addSubtopicBtn.addEventListener('click', handleAddSubtopic);
+}
 /**
  * Initializes the event handlers for the "View Docs" links.
  */
 function initializeDocViewHandlers() {
-
-
-
 
     document.querySelectorAll('.view-docs-link').forEach(link => {
         link.addEventListener('click', (event) => {
@@ -93,88 +132,12 @@ function initializeDocViewHandlers() {
             showDocs(compIndex, partIndex);
         });
     });
-
-    // Initial compIndex and partIndex
-    let compIndex = 100;
-    let partIndex = 1;
-
-    document.getElementById('add-subtopic-btn').addEventListener('click', () => {
-        openAddSubtopicModal(async (refreshedPart) => {
-            try {
-                // Use dummy values if some fields are missing in refreshedPart
-                const part = {
-                    name: refreshedPart.name || 'New Subtopic',
-                    relevant_docs: refreshedPart.relevant_docs || [],
-                    links: refreshedPart.links || ['https://example.com'] // Dummy link if none provided
-                };
-
-                // Generate the new table row with compIndex and partIndex
-                const newTableRow = generateTableRow(compIndex, partIndex, part);
-
-                // Insert the new row into the table's body (append as the last row)
-                const tableBody = document.getElementById('table-body');
-                tableBody.insertAdjacentHTML('beforeend', newTableRow);
-
-                // Optionally, update local storage with the refreshed part data
-                updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart);
-
-                // Increment partIndex for the next subtopic
-                partIndex++;
-
-            } catch (error) {
-                console.error('Error adding the new subtopic row:', error);
-            }
-        });
-    });
-
-
     document.getElementById('close-docs-btn').addEventListener('click', closeDocs);
-
 
     /**
      * Initializes the event handlers for the slides.
      */
-
-
-    document.querySelectorAll('.slides-button').forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const compIndex = event.currentTarget.getAttribute('data-comp-index');
-            const partIndex = event.currentTarget.getAttribute('data-part-index');
-            const partName = globalData.competencies[compIndex].parts[partIndex].name;
-            const relevantDocs = globalData.competencies[compIndex].parts[partIndex].relevant_docs.map(doc => doc.page_content); // Extract text content
-
-            // Add the "Creating slides..." text and apply the pulse animation
-            const buttonIcon = button.querySelector('i');
-            const originalHTML = button.innerHTML;
-
-            button.innerHTML = `<i class="fa-solid fa-chalkboard"></i> Creating slides...`;
-            button.classList.add('animate-pulse');
-
-            try {
-                // Call the fetchSlideData function from api.js
-                const data = JSON.parse(await fetchSlideData(partName, relevantDocs));
-                debugger
-                // Optionally, show a popup with the raw JSON data
-                showContentPopup(data);
-                // Get the checkbox for this subtopic
-                const checkbox = document.querySelector(`.subtopic-checkbox[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-
-                if (checkbox) {
-                    checkbox.disabled = false;
-                } else {
-                    console.warn(`Checkbox not found for compIndex ${compIndex} and partIndex ${partIndex}`);
-                }
-
-
-            } catch (error) {
-                console.error('Failed to fetch slide data:', error);
-            } finally {
-                // Restore the button's original state after the API call completes
-                button.innerHTML = originalHTML;
-                button.classList.remove('animate-pulse');
-            }
-        });
-    });
+    initializeSlidesButtons();
 
     // Object to store the file URLs mapped to subtopics (using comp-index and part-index as unique keys)
     const subtopicFileUrls = {};
@@ -223,6 +186,39 @@ function initializeDocViewHandlers() {
     //         }
     //     }
     // });
+}
+
+async function handleSlidesButtonClick(event) {
+    const button = event.currentTarget;
+    const compIndex = button.getAttribute('data-comp-index');
+    const partIndex = button.getAttribute('data-part-index');
+    const partName = globalData.competencies[compIndex].parts[partIndex].name;
+    const relevantDocs = globalData.competencies[compIndex].parts[partIndex].relevant_docs.map(doc => doc.page_content);
+
+    const buttonIcon = button.querySelector('i');
+    const originalHTML = button.innerHTML;
+
+    button.innerHTML = `<i class="fa-solid fa-chalkboard"></i> Creating slides...`;
+    button.classList.add('animate-pulse');
+
+    try {
+        const data = JSON.parse(await fetchSlideData(partName, relevantDocs));
+        debugger;
+        showContentPopup(data);
+
+        const checkbox = document.querySelector(`.subtopic-checkbox[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+
+        if (checkbox) {
+            checkbox.disabled = false;
+        } else {
+            console.warn(`Checkbox not found for compIndex ${compIndex} and partIndex ${partIndex}`);
+        }
+    } catch (error) {
+        console.error('Failed to fetch slide data:', error);
+    } finally {
+        button.innerHTML = originalHTML;
+        button.classList.remove('animate-pulse');
+    }
 }
 
 /**
@@ -306,14 +302,18 @@ function showDocs(compIndex, partIndex) {
                         <p class="text-sm break-all mb-2">${doc.page_content}</p>
                         <div class="flex justify-between items-center">
                             <a href="${doc.metadata.source}/#:~:text=${encodeURIComponent(doc.page_content.split(' ').slice(0, 5).join(' '))}" 
-                                class="text-blue-600 hover:text-blue-800 text-sm underline break-all" target="_blank">
+                                class="text-blue-600 w-[450px] hover:text-blue-800 text-sm underline break-all" target="_blank">
                                 ${doc.metadata.source}
                             </a>
-                            <span class="text-xs text-white bg-blue-500 px-2 py-1 rounded-full" title="Relevance Score">
+                            <span class="text-sm text-blue-900 bg-blue-100 px-2 py-1 rounded-full" title="Relevance Score">
                                 Score: ${doc.score.toFixed(2)}
                             </span>
                         </div>
-                    </div>
+                          <button data-index="${index}" class="delete-doc-btn mt-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                                Delete
+                            </button>
+                        </div>
+                  
                 </div>
             `;
 

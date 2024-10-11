@@ -8,27 +8,36 @@ export function generateTableRow(compIndex, partIndex, part) {
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
                         <input type="checkbox" disabled class="subtopic-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Select Subtopic">
-                        <p class="font-semibold mr-2 truncate w-[350px] sub-topic pr-4" data-comp-index="${compIndex}" data-part-index="${partIndex}">
-                            ${part.name}
-                           
-                        </p>
-                         <!-- Augment Context Button (lightning bolt icon) -->
-                        <button id="augment-context-${compIndex}-${partIndex}" 
-                                class="augment-context-btn p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" 
-                                data-comp-index="${compIndex}" 
-                                data-part-index="${partIndex}"
-                                title="Augment context">
-                            <i class="fa-solid fa-bolt text-yellow-500"></i>
-                        </button>
-                        <!-- Refresh Button (stays on the right of the document count) -->
+                        
+                        <div class="flex items-center  pr-4">
+                            
+
+                            <div class="flex flex-col w-[350px]">
+                               <p class="font-semibold  truncate  sub-topic " data-comp-index="${compIndex}" data-part-index="${partIndex}">
+                                ${part.name}
+                                </p>
+                                <div class="mt-2 w-full hidden" id="augmented-info-${compIndex}-${partIndex}">
+                                    <textarea class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm text-gray-700 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" rows="4"></textarea>
+                                </div>
+                            </div>
+                             
+                            <!-- Augment Context Button (lightning bolt icon) -->
+                            <button id="augment-context-${compIndex}-${partIndex}" 
+                                    class="augment-context-btn p-1 rounded-full hover:bg-gray-200 transition-colors duration-200 flex-shrink-0" 
+                                    data-comp-index="${compIndex}" 
+                                    data-part-index="${partIndex}"
+                                    title="Augment context">
+                                <i class="fa-solid fa-bolt text-yellow-500"></i>
+                            </button>
+                        </div>
                         
                         ${part.relevant_docs.length > 0 ?
-            `<a href="#" class="text-blue-500 underline view-docs-link mr-2 ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}"> Matches (${part.relevant_docs.length})</a>
-                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
+            `<a href="#" class="text-blue-500 underline w-[100px] view-docs-link ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}"> Matches (${part.relevant_docs.length})</a>
+                        <button  class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" title="Rerun Matches" aria-label="Refresh">
                                         <i class="fa-solid fa-sync-alt text-gray-500"></i>
                                     </button>`:
-            `<a href="#" class="text-red-500 underline view-docs-link mr-2 ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">Matches (${part.relevant_docs.length})</a>
-                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Refresh">
+            `<a href="#" class="text-red-500 underline  w-[100px] view-docs-link  ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">Matches (${part.relevant_docs.length})</a>
+                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" title="Rerun Matches" aria-label="Refresh">
                                         <i class="fa-solid fa-sync-alt text-gray-500"></i>
                                     </button>`}
                       
@@ -42,7 +51,7 @@ export function generateTableRow(compIndex, partIndex, part) {
                         </div>    
                         
                          <!-- Attach Icon with Hidden File Input next to View Docs -->
-                        <button class="attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
+                        <button title="Attach Images To Slides" class="attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
                             <i class="fa-solid fa-paperclip"></i>
                         </button>
                     </div>
@@ -140,33 +149,17 @@ function updateUIWithAugmentedData(compIndex, partIndex, augmentedData) {
     const augmentedInfoDiv = document.querySelector(`#augmented-info-${compIndex}-${partIndex}`);
     if (augmentedInfoDiv) {
         const existingTextarea = augmentedInfoDiv.querySelector('textarea');
-        if (existingTextarea) {
-            // If textarea exists, update its content
-            existingTextarea.value = augmentedData.augmented_response || 'No augmented information available.';
-        } else {
-            // If no textarea exists in the augmented info div, add it
-            augmentedInfoDiv.innerHTML = `
-                <textarea class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm text-gray-700 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" rows="4">${augmentedData.augmented_response || 'No augmented information available.'}</textarea>
-            `;
-        }
-    } else {
-        // If the augmented info div doesn't exist, replace the entire content
-        const partName = element.textContent;
-        const newHTML = `
-            <div class="flex flex-col">
-                <a href="#" class="font-semibold text-blue-600 hover:text-blue-800 mr-2 truncate w-[350px] sub-topic" data-comp-index="${compIndex}" data-part-index="${partIndex}">${partName}</a>
-                <div class="mt-2 w-full hidden" id="augmented-info-${compIndex}-${partIndex}">
-                    <textarea class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm text-gray-700 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" rows="4">${augmentedData.augmented_response || 'No augmented information available.'}</textarea>
-                </div>
-            </div>
-        `;
+        existingTextarea.value = augmentedData.augmented_response || 'No augmented information available.';
+        element.classList.add('text-blue-500', 'underline', 'cursor-pointer');
 
-        element.outerHTML = newHTML;
+    } else {
+        console.log('No div found');
+
     }
 
     // Add click event listener to the new link
-    const newLink = document.querySelector(`a[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-    newLink.addEventListener('click', (event) => {
+    // const newLink = document.querySelector(`a[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+    element.addEventListener('click', (event) => {
         event.preventDefault();
         const infoDiv = document.getElementById(`augmented-info-${compIndex}-${partIndex}`);
         infoDiv.classList.toggle('hidden');

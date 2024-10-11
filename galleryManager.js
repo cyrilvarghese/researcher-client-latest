@@ -7,6 +7,17 @@ const subtopicFileUrls = {}; // Memory object to store files for each subtopic
  * Tracks files locally per subtopic and updates the file count.
  */
 export function initializeFileInputListener() {
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('.attach-button')) {
+            const button = event.target.closest('.attach-button');
+            const compIndex = button.getAttribute('data-comp-index');
+            const partIndex = button.getAttribute('data-part-index');
+            const fileInput = document.querySelector(`.file-input[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+
+            // Trigger the file input
+            fileInput.click();
+        }
+    });
     document.addEventListener('change', async (event) => {
         if (event.target.classList.contains('file-input')) {
             const files = event.target.files;
