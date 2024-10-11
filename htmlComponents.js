@@ -40,7 +40,7 @@ export function createTableWithAddButton(topicTitle, tableRows) {
             ${topicTitle}
             <div class="flex space-x-2">
                 <button id="add-to-summary-btn" class="hidden text-sm bg-gray-300 text-gray-700 p-4 rounded-md shadow flex items-center">
-                    <i class="fa-solid fa-file-lines mr-2"></i>Add to Summary
+                    <i class="fa-solid fa-file-lines mr-2"></i>Create Summary Slide
                 </button>
                 <button id="add-subtopic-btn" class="text-sm bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
                     <i class="fa-solid fa-plus mr-2"></i>Add Subtopic

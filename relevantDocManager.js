@@ -1,4 +1,3 @@
-
 /**
  * Shows the documents for a given part index.
  * @param {number} compIndex - The index of the competency in the API response.
@@ -22,6 +21,7 @@ export function showDocs(compIndex, partIndex,globalData) {
 
     docsBooksContainer.innerHTML = booksTitle;
     docsLinksContainer.innerHTML = linksTitle;
+    part.relevant_docs.sort((a, b) => b.score - a.score);
 
     part.relevant_docs.forEach((doc, index) => {
         const isUrl = doc.metadata.source.startsWith('http');
@@ -32,9 +32,14 @@ export function showDocs(compIndex, partIndex,globalData) {
                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer">
                 </div>
                 <div class="flex-grow">
-                    <p class="text-sm break-all">${doc.page_content}</p>
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm break-all flex-grow">${doc.page_content}</p>
+                        <span class="text-xs text-gray-500 ml-2" title="Relevance Score">
+                            ${doc.score.toFixed(2)}
+                        </span>
+                    </div>
                     <a href="${doc.metadata.source}/#:~:text=${encodeURIComponent(doc.page_content.split(' ').slice(0, 5).join(' '))}" 
-                        class="text-blue-500 underline break-all" target="_blank">
+                        class="text-blue-600 hover:text-blue-800 text-sm underline break-all" target="_blank">
                         ${doc.metadata.source}
                     </a>
                 </div>

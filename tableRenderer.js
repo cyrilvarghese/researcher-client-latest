@@ -156,7 +156,14 @@ function initializeDocViewHandlers() {
                 debugger
                 // Optionally, show a popup with the raw JSON data
                 showContentPopup(data);
+                // Get the checkbox for this subtopic
+                const checkbox = document.querySelector(`.subtopic-checkbox[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
 
+                if (checkbox) {
+                    checkbox.disabled = false;
+                } else {
+                    console.warn(`Checkbox not found for compIndex ${compIndex} and partIndex ${partIndex}`);
+                }
 
 
             } catch (error) {
@@ -285,24 +292,30 @@ function showDocs(compIndex, partIndex) {
 
     docsBooksContainer.innerHTML = booksTitle;
     docsLinksContainer.innerHTML = linksTitle;
+    part.relevant_docs.sort((a, b) => b.score - a.score);
 
     part.relevant_docs.forEach((doc, index) => {
         const isUrl = doc.metadata.source.startsWith('http');
         const docHtml = `
-            <div id="doc-${index}" class="bg-gray-100 text-gray-900 p-4 rounded-md shadow-md flex-col items-start mb-4 transition-all duration-200">
-                <div class="flex-col">
-                    <p class="text-sm break-all">${doc.page_content}</p>
-                    <a href="${doc.metadata.source}/#:~:text=${encodeURIComponent(doc.page_content.split(' ').slice(0, 5).join(' '))}" 
-                        class="text-blue-500 underline break-all" target="_blank">
-                        ${doc.metadata.source}
-                    </a>
+                <div id="doc-${index}" class="bg-gray-100 text-gray-900 p-4 rounded-md shadow-md flex flex-col mb-4 transition-all duration-200">
+                    <div class="flex items-center h-5 mr-3 hidden">
+                        <input type="checkbox" id="checkbox-${index}" 
+                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer">
+                    </div>
+                    <div>
+                        <p class="text-sm break-all mb-2">${doc.page_content}</p>
+                        <div class="flex justify-between items-center">
+                            <a href="${doc.metadata.source}/#:~:text=${encodeURIComponent(doc.page_content.split(' ').slice(0, 5).join(' '))}" 
+                                class="text-blue-600 hover:text-blue-800 text-sm underline break-all" target="_blank">
+                                ${doc.metadata.source}
+                            </a>
+                            <span class="text-xs text-white bg-blue-500 px-2 py-1 rounded-full" title="Relevance Score">
+                                Score: ${doc.score.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <button data-index="${index}" class="delete-doc-btn mt-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                        >
-                    Delete
-                </button>
-            </div>
-        `;
+            `;
 
         if (isUrl) {
             docsLinksContainer.innerHTML += docHtml;

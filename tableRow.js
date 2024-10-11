@@ -7,8 +7,11 @@ export function generateTableRow(compIndex, partIndex, part) {
             <td class="border border-gray-300 p-2 text-left">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
-                        <input type="checkbox" class="subtopic-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Select Subtopic">
-                        <p class="font-semibold mr-2 truncate w-[350px] sub-topic pr-4"  data-comp-index="${compIndex}" data-part-index="${partIndex}">${part.name}</p>
+                        <input type="checkbox" disabled class="subtopic-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Select Subtopic">
+                        <p class="font-semibold mr-2 truncate w-[350px] sub-topic pr-4" data-comp-index="${compIndex}" data-part-index="${partIndex}">
+                            ${part.name}
+                           
+                        </p>
                          <!-- Augment Context Button (lightning bolt icon) -->
                         <button id="augment-context-${compIndex}-${partIndex}" 
                                 class="augment-context-btn p-1 rounded-full hover:bg-gray-200 transition-colors duration-200" 

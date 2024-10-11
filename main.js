@@ -6,6 +6,7 @@ import { initTabs } from './tabsModule.js';
 import { initTOCDropdowns } from './tocDropdowns.js';
 import { renderBooks } from './booksRenderer.js';
 import { renderStreamedTable } from './streamedTableRenderer.js';
+import { setButtonLoadingState, showLoadingState } from './utils.js';
 
 // Switch flag to toggle between streamed and non-streamed versions
 const USE_STREAMING = false;
@@ -91,11 +92,11 @@ async function init() {
 async function handleDelete() {
     const deleteButton = document.querySelector('#delete-button');
 
-    setLoadingState(deleteButton, true); // Set loading state
+    setButtonLoadingState(deleteButton, true); // Set loading state
 
     await deleteNotes();
 
-    setLoadingState(deleteButton, false); // Remove loading state
+    setButtonLoadingState(deleteButton, false); // Remove loading state
 
     await init();  // Reload notes after deletion
 }
@@ -125,36 +126,12 @@ function renderEmptyState() {
 }
 
 
-/**
- * Sets the loading state for a button.
- * @param {HTMLButtonElement} button - The button to set the loading state on.
- * @param {boolean} isLoading - Whether to set or remove the loading state.
- */
-function setLoadingState(button, isLoading) {
-    if (isLoading) {
-        button.disabled = true;
-        button.classList.add('bg-gray-400', 'cursor-not-allowed');
-        button.classList.remove('bg-blue-600', 'bg-red-600', 'bg-gray-300');
-        button.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading...`;
-    } else {
-        button.disabled = false;
-        button.classList.remove('bg-gray-400', 'cursor-not-allowed');
-        // Restore original button color and text based on the button's id or another identifier
-        if (button.id === 'upload-button') {
-            button.classList.add('bg-blue-600');
-            button.innerHTML = `<i class="fa-solid fa-upload mr-2"></i>Upload`;
-        } else if (button.id === 'delete-button') {
-            button.classList.add('bg-red-600');
-            button.innerHTML = `<i class="fa-solid fa-trash mr-2"></i>Clean`;
-        }
-    }
-}
-
 
 // Consolidated file upload handler
 async function handleFileUpload(event) {
     event.preventDefault();
     const files = document.getElementById('file-input').files;
+    showLoadingState();
 
     if (files.length === 0) {
         alert('Please select at least one file.');
@@ -162,7 +139,7 @@ async function handleFileUpload(event) {
     }
 
     const uploadButton = document.querySelector('#upload-button');
-    setLoadingState(uploadButton, true); // Set loading state
+    setButtonLoadingState(uploadButton, true); // Set loading state
 
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
@@ -206,7 +183,7 @@ async function handleFileUpload(event) {
         console.error('Error processing files:', error);
         alert('An error occurred while processing the files. Please try again.');
     } finally {
-        setLoadingState(uploadButton, false); // Remove loading state
+        setButtonLoadingState(uploadButton, false); // Remove loading state
     }
 }
 
