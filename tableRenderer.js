@@ -60,6 +60,9 @@ function initializeAllEventHandlers() {
     initializeAddSubtopicButton();
 }
 
+
+
+
 function setupAugmentContextButtons() {
     document.querySelectorAll('.augment-context-btn').forEach(button => {
         // Remove any existing event listeners
@@ -73,34 +76,8 @@ function setupAugmentContextButtons() {
 // Define the handler function
 function handleAddSubtopic() {
     // Initial compIndex and partIndex
-    let customCompIndex = getGlobalData().competencies.length;
-    let currentCustomPartIndex = 1;
-    openAddSubtopicModal(async (refreshedPart) => {
-        try {
-            // Use dummy values if some fields are missing in refreshedPart
-            const part = {
-                name: refreshedPart.name || 'New Subtopic',
-                relevant_docs: refreshedPart.relevant_docs || [],
-                links: refreshedPart.links || ['https://example.com'] // Dummy link if none provided
-            };
 
-            // Generate the new table row with compIndex and partIndex
-            const newTableRow = generateTableRow(customCompIndex, currentCustomPartIndex, part);
-
-            // Insert the new row into the table's body (append as the last row)
-            const tableBody = document.getElementById('table-body');
-            tableBody.insertAdjacentHTML('beforeend', newTableRow);
-
-            // Optionally, update local storage with the refreshed part data
-            updateLocalStorageWithRefreshedPart(customCompIndex, currentCustomPartIndex, refreshedPart);
-
-            // Increment partIndex for the next subtopic
-            currentCustomPartIndex++;
-
-        } catch (error) {
-            console.error('Error adding the new subtopic row:', error);
-        }
-    });
+    openAddSubtopicModal()
 }
 
 //-----------------------------------
@@ -305,9 +282,7 @@ function showDocs(compIndex, partIndex) {
                                 class="text-blue-600 w-[450px] hover:text-blue-800 text-sm underline break-all" target="_blank">
                                 ${doc.metadata.source}
                             </a>
-                            <span class="text-sm text-blue-900 bg-blue-100 px-2 py-1 rounded-full" title="Relevance Score">
-                                Score: ${doc.score.toFixed(2)}
-                            </span>
+                            ${renderRelevanceScore(doc.score)}
                         </div>
                           <button data-index="${index}" class="delete-doc-btn mt-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
                                 Delete
@@ -336,6 +311,22 @@ function showDocs(compIndex, partIndex) {
     // Show the scrim and modal
     document.querySelector('#scrim-layer').classList.remove('hidden');
     document.querySelector('#docs-modal').classList.remove('hidden');
+}
+
+
+function scoreToStars(score) {
+    const roundedScore = Math.round(score);
+    const starCount = Math.min(Math.max(roundedScore, 1), 5); // Ensure score is between 1 and 5
+    return '<span style="font-size: 1.5em;">★</span>'.repeat(starCount) + '<span style="font-size: 1.5em;">☆</span>'.repeat(5 - starCount);
+}
+
+function renderRelevanceScore(score) {
+    const stars = scoreToStars(score);
+    return `
+        <span class="text-sm text-blue-900  px-2 py-1 rounded-full" title="Relevance Score: ${score.toFixed(2)}">
+            ${stars}
+        </span>
+    `;
 }
 // Add this function to handle document deletion
 function deleteDoc(compIndex, partIndex, docIndex, globalData) {
@@ -465,7 +456,7 @@ function updateTableRow(compIndex, partIndex, refreshedPart) {
     }
 }
 
-function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart) {
+export function updateLocalStorageWithRefreshedPart(compIndex, partIndex, refreshedPart) {
     // Update global data
     if (!globalData.competencies[compIndex]) {
         globalData.competencies[compIndex] = { parts: [] };

@@ -32,31 +32,31 @@ export function generateTableRow(compIndex, partIndex, part) {
                         </div>
                         
                         ${part.relevant_docs.length > 0 ?
-            `<a href="#" class="text-blue-500 underline w-[100px] view-docs-link ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}"> Matches (${part.relevant_docs.length})</a>
-                        <button  class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" title="Rerun Matches" aria-label="Refresh">
-                                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
-                                    </button>`:
-            `<a href="#" class="text-red-500 underline  w-[100px] view-docs-link  ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">Matches (${part.relevant_docs.length})</a>
-                        <button class="refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" title="Rerun Matches" aria-label="Refresh">
-                                        <i class="fa-solid fa-sync-alt text-gray-500"></i>
-                                    </button>`}
+            `<a href="#" class="text-blue-500  underline w-[100px] view-docs-link ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}"> Matches (${part.relevant_docs.length})</a>
+                                    <button  class="p-1 rounded-full hover:bg-gray-200 transition-colors duration-200  refresh-button mr-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" title="Rerun Matches" aria-label="Refresh">
+                                                    <i class="fa-solid fa-sync-alt text-gray-500"></i>
+                                                </button>`:
+            `<a href="#" class="rounded-full text-red-500 underline  w-[100px] view-docs-link  ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}">Matches (0)</a>
+                                    <button class="p-1 refresh-button mr-2 rounded-full hover:bg-gray-200 transition-colors duration-200 " data-comp-index="${compIndex}" data-part-index="${partIndex}" title="Rerun Matches" aria-label="Refresh">
+                                                    <i class="fa-solid fa-sync-alt text-gray-500"></i>
+                                                </button>`}
                       
                         
                        
 
-                        <div class="ml-2">
+                        <div class="ml-6">
                             <!-- uploaded file Count Span with Data Attributes -->
                             <span class="file-count ml-1" data-comp-index="${compIndex}" data-part-index="${partIndex}">(0)</span> <!-- Initial file count -->
                             <input type="file" class="hidden file-input" multiple accept="image/*" data-comp-index="${compIndex}" data-part-index="${partIndex}">
                         </div>    
                         
                          <!-- Attach Icon with Hidden File Input next to View Docs -->
-                        <button title="Attach Images To Slides" class="attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
+                        <button title=" Attach Images To Slides" class=" p-1 rounded-full hover:bg-gray-200 transition-colors duration-200 attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
                             <i class="fa-solid fa-paperclip"></i>
                         </button>
                     </div>
                     <!-- Presentation Slides Button -->
-                    <button class="slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
+                    <button class=" p-1 rounded-full hover:bg-gray-200 transition-colors duration-200  slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
                         <i class="fa-solid fa-chalkboard"></i>
                     </button>
                 </div>
@@ -65,7 +65,7 @@ export function generateTableRow(compIndex, partIndex, part) {
                 <div class="flex items-center justify-center h-full relative group">
                     ${part.links.length > 0 ? `
                         <a href="${part.links[0]}" 
-                           class="  ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} flex items-center justify-center h-full w-full" 
+                           class="p-1 rounded-full hover:bg-gray-200 transition-colors duration-200   ${part.relevant_docs.length === 0 ? 'text-red-500' : 'text-blue-500'} flex items-center justify-center h-full w-full" 
                            target="_blank">
                             <i class="fas fa-search"></i>
                             <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">

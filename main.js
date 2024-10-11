@@ -183,7 +183,7 @@ async function handleFileUpload(event) {
         console.error('Error processing files:', error);
         alert('An error occurred while processing the files. Please try again.');
     } finally {
-        setButtonLoadingState(uploadButton, false); // Remove loading state
+        setButtonLoadingState(uploadButton, false,{defaultText:"Upload",defaultIcon:"fa-upload"}); // Remove loading state
     }
 }
 

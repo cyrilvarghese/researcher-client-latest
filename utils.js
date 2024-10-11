@@ -29,7 +29,7 @@ export function setButtonLoadingState(button, isLoading, options = {}) {
         button.disabled = false;
         button.classList.remove(loadingClass, 'cursor-not-allowed');
         if (defaultClass) button.classList.add(defaultClass);
-        button.innerHTML = defaultIcon ? `<i class="${defaultIcon} mr-2"></i>${defaultText}` : defaultText;
+        button.innerHTML = defaultIcon ? `<i class="fa-solid ${defaultIcon} mr-2"></i>${defaultText}` : defaultText;
     }
 }
 
