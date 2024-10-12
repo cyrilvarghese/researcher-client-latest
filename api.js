@@ -6,13 +6,14 @@ const GET_NOTES_SLUG = '/sources';
 const DELETE_SLUG = '/delete-sources';
 const EXTRACT_TEXT_SLUG = '/extract-text';
 const REFRESH_SEARCH_SLUG = '/extract-text/refresh-search';
-const GET_SLIDE_SLUG = '/get-slide';
 const GET_INDEXED_CHAPTERS_SLUG = '/process-pdf/indexed-chapters';
 const GET_TOC_SLUG = '/process-pdf/toc';
-const UPLOAD_STORE = '/upload-store';
 const AUGMENT_SUBTOPIC_SLUG = '/augment-subtopic';
-const EXTRACT_TEXT_STREAM_SLUG = '/extract-text-stream';
 const GET_SLIDE_UPLOAD_SLUG = '/get-slide-upload';
+
+// const UPLOAD_STORE = '/upload-store';
+// const GET_SLIDE_SLUG = '/get-slide';
+// const EXTRACT_TEXT_STREAM_SLUG = '/extract-text-stream';
 /**
  * Uploads files to the server along with a description.
  * @param {FileList} files - The list of files selected by the user.
