@@ -1,4 +1,3 @@
-// checkboxHandler.js
 import { setButtonLoadingState } from './utils.js';
 function initializeCheckboxHandler() {
     const checkboxes = document.querySelectorAll('.subtopic-checkbox');
@@ -55,7 +54,7 @@ function initializeAddToSummaryButton() {
         });
 
         console.log('Selected Subtopics:', selectedSubtopics);
-        setButtonLoadingState( addToSummaryBtn, true,{loadingText:"Creating Summary Slide" });
+        setButtonLoadingState(addToSummaryBtn, true, { loadingText: "Creating Summary Slide" });
 
     });
 }

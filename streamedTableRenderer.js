@@ -1,3 +1,6 @@
+//current file is not used
+
+
 import { generateTableRow, updateMatchesLink, handleAugmentContext } from './tableRow.js';
 import { openAddSubtopicModal } from './addSubtopic.js';
 import { createTableWithAddButton, createAddSubtopicModal, createDocsModal } from './htmlComponents.js';
