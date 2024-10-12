@@ -1,6 +1,6 @@
 // tableRenderer.js
 
-import { refreshDocuments, fetchSlideData, uploadFiles } from './api.js'; // Import the refreshDocuments function
+import { refreshDocuments, fetchSlideData, uploadFiles, fetchSlideDataWithImages } from './api.js'; // Import the refreshDocuments function
 import { showContentPopup } from './newSliderenderer.js';
 import { generateTableRow, updateMatchesLink, handleAugmentContext } from './tableRow.js';
 import { openAddSubtopicModal } from './addSubtopic.js';
@@ -171,7 +171,7 @@ async function handleSlidesButtonClick(event) {
     const partIndex = button.getAttribute('data-part-index');
     const partName = globalData.competencies[compIndex].parts[partIndex].name;
     const relevantDocs = globalData.competencies[compIndex].parts[partIndex].relevant_docs.map(doc => doc.page_content);
-
+    const images = globalData.competencies[compIndex].parts[partIndex].images || [];
     const buttonIcon = button.querySelector('i');
     const originalHTML = button.innerHTML;
 
@@ -179,8 +179,7 @@ async function handleSlidesButtonClick(event) {
     button.classList.add('animate-pulse');
 
     try {
-        const data = JSON.parse(await fetchSlideData(partName, relevantDocs));
-        debugger;
+        const data = await fetchSlideDataWithImages(images, partName, partName, relevantDocs)   ;
         showContentPopup(data);
 
         const checkbox = document.querySelector(`.subtopic-checkbox[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);

@@ -1,4 +1,6 @@
 // galleryManager.js
+import { getGlobalData, updateGlobalData } from './tableRenderer.js';
+
 
 const subtopicFileUrls = {}; // Memory object to store files for each subtopic
 
@@ -25,6 +27,7 @@ export function initializeFileInputListener() {
             const partIndex = event.target.getAttribute('data-part-index');
             const subtopicKey = `${compIndex}-${partIndex}`;
 
+          
             if (files.length > 0) {
                 console.log('Files attached:', files);
 
@@ -49,10 +52,14 @@ export function initializeFileInputListener() {
 
                 // Add event listener to open the gallery
                 const galleryLink = document.querySelector(`.open-gallery-link[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+                
                 galleryLink.addEventListener('click', (e) => {
                     e.preventDefault();
                     openGallery(subtopicKey);
                 });
+                let globalData = getGlobalData();
+                globalData.competencies[compIndex].parts[partIndex].images = subtopicFileUrls[subtopicKey] || [];
+                updateGlobalData(globalData);   
             }
         }
     });

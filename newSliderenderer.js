@@ -1,4 +1,6 @@
-export function showContentPopup(data) {
+export function showContentPopup(content) {
+    let data = JSON.parse(content.content)
+    let imagesURLs = content.images;
     // Create the popup structure
     const popupHtml = `
     <div id="json-popup" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-all duration-500">
@@ -12,7 +14,7 @@ export function showContentPopup(data) {
 
             <!-- Tabs and Content -->
             ${createTabs()}
-            ${createSlidesContent(data.slides)}
+            ${createSlidesContent(data.slides, imagesURLs)}
             ${createQuizContent(data.quiz)}
             ${createCaseContent(data.case_based)}
             ${createBloomsContent(data.blooms)}
@@ -43,11 +45,31 @@ function createTabs() {
     </div>`;
 }
 
-function createSlidesContent(slides) {
+function createSlidesContent(slides, imageUrls) {
+    // Create a homogeneous structure for all slides
+    const homogenousSlides = slides.flatMap(slide => 
+        slide.content.map(section => ({
+            type: 'text',
+            title: slide.title,
+            heading: section.heading,
+            content: section.bullet_points
+        }))
+    );
+
+    // Add image slides
+    imageUrls.forEach((url, index) => {
+        homogenousSlides.push({
+            type: 'image',
+            title: `Image Slide ${index + 1}`,
+            heading: `Image ${index + 1}`,
+            content: url
+        });
+    });
+
     return `
     <div id="slides-content" class="tab-content-lm h-[calc(100%-50px)] overflow-hidden">
         <div class="flex justify-between items-start mb-4">
-            <h2 class="text-lg font-semibold w-full truncate overflow-hidden cursor-pointer">${slides[0].title}</h2>
+            <h2 class="text-lg font-semibold w-full truncate overflow-hidden cursor-pointer">${homogenousSlides[0].title}</h2>
         </div>
         <div class="flex flex-start items-center mb-4">
            <label class="relative inline-flex items-center cursor-pointer">
@@ -58,27 +80,35 @@ function createSlidesContent(slides) {
             <span id="toggle-label" class="ml-3 text-gray-700">Slideshow Off</span>
         </div>
         <div id="json-content" class="h-[calc(100%-70px)] w-full overflow-auto flex-1 bg-gray-100 rounded-lg p-4 ">
-            ${slides[0].content.map(section => `
+            ${homogenousSlides.map(slide => `
                 <div class="mb-4 animate-fade-in">
-                    <h3 class="font-semibold text-gray-800">${section.heading}</h3>
-                    <ul class="list-disc pl-5 text-gray-700">
-                        ${section.bullet_points.map(point => `<li>${point}</li>`).join('')}
-                    </ul>
+                    <h3 class="font-semibold text-gray-800">${slide.title}</h3>
+                    ${slide.type === 'image' 
+                        ? `<img src="${slide.content}" alt="${slide.heading}" class="max-w-full h-auto mb-2">`
+                        : `<ul class="list-disc pl-5 text-gray-700">
+                            ${slide.content.map(point => `<li>${point}</li>`).join('')}
+                           </ul>`
+                    }
                 </div>
             `).join('')}
         </div>
         <div id="slideshow-content" class="slideshow-content hidden flex-1 h-full flex flex-col items-center">
             <div class="w-full p-8 overflow-y-auto bg-blue-900 text-white rounded-lg">
-                ${slides[0].content.map((section, index) => `
+                ${homogenousSlides.map((slide, index) => `
                     <div class="slide ${index === 0 ? 'active animate-fade-in' : 'hidden'}">
                         <div class="sticky top-0 bg-blue-900 z-10">
-                            <h3 class="text-2xl font-bold mb-4">${section.heading}</h3>
+                            <h3 class="text-2xl font-bold mb-4">${slide.heading}</h3>
                         </div>
-                        <ul class="list-disc pl-5 text-lg leading-relaxed h-[194px] overflow-y-auto">
-                            ${section.bullet_points.map(point => `<li class="mb-2">${point}</li>`).join('')}
-                        </ul>
+                        ${slide.type === 'image' 
+                            ? `<div class="flex justify-center items-center h-[194px]">
+                                <img src="${slide.content}" alt="${slide.heading}" class="max-w-full max-h-full object-contain">
+                               </div>`
+                            : `<ul class="list-disc pl-5 text-lg leading-relaxed h-[194px] overflow-y-auto">
+                                ${slide.content.map(point => `<li class="mb-2">${point}</li>`).join('')}
+                               </ul>`
+                        }
                         <div class="mt-8 text-sm text-gray-200 text-left">
-                            Slide ${index + 1} of ${slides[0].content.length}
+                            Slide ${index + 1} of ${homogenousSlides.length}
                         </div>
                     </div>
                 `).join('')}
@@ -243,4 +273,3 @@ function initializeToggle() {
         }
     });
 }
-

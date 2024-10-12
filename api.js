@@ -12,7 +12,7 @@ const GET_TOC_SLUG = '/process-pdf/toc';
 const UPLOAD_STORE = '/upload-store';
 const AUGMENT_SUBTOPIC_SLUG = '/augment-subtopic';
 const EXTRACT_TEXT_STREAM_SLUG = '/extract-text-stream';
-
+const GET_SLIDE_UPLOAD_SLUG = '/get-slide-upload';
 /**
  * Uploads files to the server along with a description.
  * @param {FileList} files - The list of files selected by the user.
@@ -251,10 +251,51 @@ async function augmentSubtopic(topic, subtopic) {
         throw error;
     }
 }
+/**
+ * Sends files, description, subtopic, and text content (as a single string) in a single API call to the backend.
+ * @param {FileList} files - The list of files selected by the user.
+ * @param {string} description - The description for the files.
+ * @param {string} subtopic - The subtopic name to upload and use for slide generation.
+ * @param {string} textContent - The text content for slide generation (as a single string).
+ * @returns {Promise<Object>} A promise that resolves to the combined API response from the backend.
+ */
+async function fetchSlideDataWithImages(files, description, subtopic, textContent) {
+    try {
+        const formData = new FormData();
+        formData.append('subtopic_name', subtopic);  // Subtopic field for both slide generation and upload
+        formData.append('description', description); // Append description for the upload
+
+        // Append multiple files for upload
+        Array.from(files).forEach((file) => {
+            formData.append('files', file);
+        });
+
+        // Append text content for slide generation as a single string
+        formData.append('text_content', textContent);
+
+        // Send the request to the combined API endpoint
+        const response = await fetch(`${BASE_URL}${GET_SLIDE_UPLOAD_SLUG}`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to complete the request: ' + response.statusText);
+        }
+
+        // Parse and return the combined response from the backend
+        const responseData = await response.json();
+        return responseData;
+
+    } catch (error) {
+        console.error('Error during API call:', error);
+        throw error;
+    }
+}
 
 
 // Export the functions for use in other modules
-export { fetchNotes, deleteNotes, extractText, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic };
+export { fetchNotes, deleteNotes, extractText, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic, fetchSlideDataWithImages };
 
 export async function* getTableData(formData, useStream = true) {
     const response = await fetch(`${BASE_URL}${EXTRACT_TEXT_STREAM_SLUG}`, {
