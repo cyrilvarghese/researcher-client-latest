@@ -10,9 +10,10 @@ const GET_INDEXED_CHAPTERS_SLUG = '/process-pdf/indexed-chapters';
 const GET_TOC_SLUG = '/process-pdf/toc';
 const AUGMENT_SUBTOPIC_SLUG = '/augment-subtopic';
 const GET_SLIDE_UPLOAD_SLUG = '/get-slide-upload';
+const GET_SUMMARY_SLIDE_SLUG = '/get-summary-slide';
 
 // const UPLOAD_STORE = '/upload-store';
-// const GET_SLIDE_SLUG = '/get-slide';
+const GET_SLIDE_SLUG = '/get-slide';
 // const EXTRACT_TEXT_STREAM_SLUG = '/extract-text-stream';
 /**
  * Uploads files to the server along with a description.
@@ -168,11 +169,12 @@ async function refreshDocuments(partName, augmentedInfo = "") {
  * @param {Array<string>} textContent - The relevant documents' text content.
  * @returns {Promise<Object>} A promise that resolves to the API response data.
  */
-async function fetchSlideData(subtopic, textContent) {
+async function fetchSlideData(subtopic, textContent, summary = false) {
     try {
         const requestBody = {
             subtopic: subtopic,
-            text_content: textContent
+            text_content: textContent,
+            is_summary_slide: summary
         };
 
         const response = await fetch(`${BASE_URL}${GET_SLIDE_SLUG}`, {
@@ -295,9 +297,6 @@ async function fetchSlideDataWithImages(files, description, subtopic, textConten
 }
 
 
-// Export the functions for use in other modules
-export { fetchNotes, deleteNotes, extractText, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic, fetchSlideDataWithImages };
-
 export async function* getTableData(formData, useStream = true) {
     const response = await fetch(`${BASE_URL}${EXTRACT_TEXT_STREAM_SLUG}`, {
         method: 'POST',
@@ -335,3 +334,33 @@ export async function* getTableData(formData, useStream = true) {
         }
     }
 }
+
+/**
+ * Fetches a summary slide based on the provided summaries.
+ * @param {Array<string>} summaries - An array of summary texts.
+ * @returns {Promise<Object>} A promise that resolves to the summary slide data.
+ */
+async function fetchSummarySlide(summaries) {
+    try {
+        const response = await fetch(`${BASE_URL}${GET_SUMMARY_SLIDE_SLUG}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ summaries }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch summary slide');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching summary slide:', error);
+        throw error;
+    }
+}
+
+// Export the functions for use in other modules
+export { fetchNotes, deleteNotes, extractText, fetchSummarySlide, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic, fetchSlideDataWithImages };

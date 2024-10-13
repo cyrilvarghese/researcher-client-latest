@@ -1,6 +1,10 @@
-export function showContentPopup(content) {
+import { getGlobalData, updateGlobalData } from './tableRenderer.js';
+export function showContentPopup(content, compIndex = null, partIndex = null) {
     let data = JSON.parse(content.content)
     let imagesURLs = content.images;
+    if (compIndex && partIndex) {//called frm tableRenderer
+        setSummary(data.summary, compIndex, partIndex);
+    }
     // Create the popup structure
     const popupHtml = `
     <div id="json-popup" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 transition-all duration-500">
@@ -13,11 +17,13 @@ export function showContentPopup(content) {
             </div>
 
             <!-- Tabs and Content -->
-            ${createTabs()}
+            ${compIndex && partIndex ? `${createTabs()}
             ${createSlidesContent(data.slides, imagesURLs)}
             ${createQuizContent(data.quiz)}
             ${createCaseContent(data.case_based)}
-            ${createBloomsContent(data.blooms)}
+            ${createBloomsContent(data.blooms)}` : `${createSlidesTab()}
+            ${createSlidesContent(data.slides, imagesURLs)}`}
+            
         </div>
     </div>
 `;
@@ -44,10 +50,13 @@ function createTabs() {
         <button id="blooms-tab" class="tab-button-content font-semibold">Bloom's</button>
     </div>`;
 }
+function createSlidesTab() {
+    return `<button id="slides-tab" class="tab-button-content font-semibold">Slides</button>`;
+}
 
 function createSlidesContent(slides, imageUrls) {
     // Create a homogeneous structure for all slides
-    const homogenousSlides = slides.flatMap(slide => 
+    const homogenousSlides = slides.flatMap(slide =>
         slide.content.map(section => ({
             type: 'text',
             title: slide.title,
@@ -71,7 +80,7 @@ function createSlidesContent(slides, imageUrls) {
         <div class="flex justify-between items-start mb-4">
             <h2 class="text-lg font-semibold w-full truncate overflow-hidden cursor-pointer">${homogenousSlides[0].title}</h2>
         </div>
-        <div class="flex flex-start items-center mb-4">
+        <div class="flex flex-start items-center mb-4 pl-1">
            <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="toggle-switch" class="sr-only peer">
                 <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 transition-colors duration-300"></div>
@@ -82,13 +91,13 @@ function createSlidesContent(slides, imageUrls) {
         <div id="json-content" class="h-[calc(100%-70px)] w-full overflow-auto flex-1 bg-gray-100 rounded-lg p-4 ">
             ${homogenousSlides.map(slide => `
                 <div class="mb-4 animate-fade-in">
-                    <h3 class="font-semibold text-gray-800">${slide.title}</h3>
-                    ${slide.type === 'image' 
-                        ? `<img src="${slide.content}" alt="${slide.heading}" class="max-w-full h-auto mb-2">`
-                        : `<ul class="list-disc pl-5 text-gray-700">
+                    <h3 class="font-semibold text-gray-800">${slide.heading}</h3>
+                    ${slide.type === 'image'
+            ? `<img src="${slide.content}" alt="${slide.heading}" class="max-w-full h-auto mb-2">`
+            : `<ul class="list-disc pl-5 text-gray-700">
                             ${slide.content.map(point => `<li>${point}</li>`).join('')}
                            </ul>`
-                    }
+        }
                 </div>
             `).join('')}
         </div>
@@ -99,14 +108,14 @@ function createSlidesContent(slides, imageUrls) {
                         <div class="sticky top-0 bg-blue-900 z-10">
                             <h3 class="text-2xl font-bold mb-4">${slide.heading}</h3>
                         </div>
-                        ${slide.type === 'image' 
-                            ? `<div class="flex justify-center items-center h-[194px]">
+                        ${slide.type === 'image'
+                ? `<div class="flex justify-center items-center h-[194px]">
                                 <img src="${slide.content}" alt="${slide.heading}" class="max-w-full max-h-full object-contain">
                                </div>`
-                            : `<ul class="list-disc pl-5 text-lg leading-relaxed h-[194px] overflow-y-auto">
+                : `<ul class="list-disc pl-5 text-lg leading-relaxed h-[194px] overflow-y-auto">
                                 ${slide.content.map(point => `<li class="mb-2">${point}</li>`).join('')}
                                </ul>`
-                        }
+            }
                         <div class="mt-8 text-sm text-gray-200 text-left">
                             Slide ${index + 1} of ${homogenousSlides.length}
                         </div>
@@ -272,4 +281,29 @@ function initializeToggle() {
             document.getElementById('toggle-label').textContent = 'Slideshow Off';
         }
     });
+}
+function setSummary(summary, compIndex, partIndex) {
+    const globalData = getGlobalData();
+
+    // Ensure globalData is defined and has the necessary structure
+    if (!globalData || !globalData.competencies) {
+        console.error('globalData or competencies not initialized');
+        return;
+    }
+
+    // Check if the competency exists
+    if (!globalData.competencies[compIndex]) {
+        console.error(`Competency at index ${compIndex} does not exist`);
+        return;
+    }
+
+    // Check if the part exists within the competency
+    if (!globalData.competencies[compIndex].parts[partIndex]) {
+        console.error(`Part at index ${partIndex} does not exist in competency ${compIndex}`);
+        return;
+    }
+
+    // Set the summary
+    globalData.competencies[compIndex].parts[partIndex].summary = summary;
+    console.log(`Summary set for competency ${compIndex}, part ${partIndex}`);
 }

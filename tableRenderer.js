@@ -180,7 +180,7 @@ async function handleSlidesButtonClick(event) {
 
     try {
         const data = await fetchSlideDataWithImages(images, partName, partName, relevantDocs)   ;
-        showContentPopup(data);
+        showContentPopup(data,compIndex,partIndex);
 
         const checkbox = document.querySelector(`.subtopic-checkbox[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
 

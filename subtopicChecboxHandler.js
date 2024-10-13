@@ -1,4 +1,7 @@
 import { setButtonLoadingState } from './utils.js';
+import { getGlobalData } from './tableRenderer.js';
+import { fetchSlideData } from './api.js';
+import { showContentPopup } from './newSliderenderer.js';
 function initializeCheckboxHandler() {
     const checkboxes = document.querySelectorAll('.subtopic-checkbox');
     const addToSummaryBtn = document.getElementById('add-to-summary-btn');
@@ -37,7 +40,7 @@ function initializeCheckboxHandler() {
 function initializeAddToSummaryButton() {
     const addToSummaryBtn = document.getElementById('add-to-summary-btn');
 
-    addToSummaryBtn.addEventListener('click', () => {
+    addToSummaryBtn.addEventListener('click', async () => {
         const selectedSubtopics = [];
         const checkboxes = document.querySelectorAll('.subtopic-checkbox:checked');
 
@@ -52,10 +55,29 @@ function initializeAddToSummaryButton() {
                 name: subtopicName
             });
         });
-
-        console.log('Selected Subtopics:', selectedSubtopics);
+        let globalData = getGlobalData();
+        //iterate through selectedSubtopics and get summary from globalState  and append to a summary array  
+        let summaries = [];
+        selectedSubtopics.forEach(subtopic => {
+            summaries.push(globalData.competencies[subtopic.compIndex].parts[subtopic.partIndex].summary);
+        });
+        console.log('Selected Subtopics:', summaries);
         setButtonLoadingState(addToSummaryBtn, true, { loadingText: "Creating Summary Slide" });
 
+        let textContent = summaries.map(summary => summary.text);
+        try {
+            let summarySlideData = await fetchSlideData(globalData["Main Topic"], textContent, true);
+            console.log('Summary Slide:', summarySlideData);
+            // Handle successful slide creation here
+            showContentPopup(summarySlideData);
+
+
+        } catch (error) {
+            console.error('Error creating summary slide:', error);
+            // Handle error here (e.g., show an error message to the user)
+        } finally {
+            setButtonLoadingState(addToSummaryBtn, false, { defaultText: "Create Summary Slide", defaultIcon: "fa-solid fa-file-lines" });
+        }
     });
 }
 

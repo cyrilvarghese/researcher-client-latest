@@ -83,4 +83,8 @@ export function toggleLoadingState(isLoading) {
 
         emptyStateContainer.classList.remove('hidden');
     }
+    else {
+
+        emptyStateContainer.classList.add('hidden');
+    }
 }
