@@ -1,6 +1,6 @@
 // main.js
 
-import { fetchNotes, deleteNotes, extractText, getTableData, refreshDocuments, fetchIndexedChapters } from './api.js';
+import { fetchNotes, deleteNotes, extractText, getTableData, refreshDocuments, fetchIndexedChapters, deleteSourceById } from './api.js';
 import { renderExtractedDataTable } from './tableRenderer.js'; // Import the module
 import { initTabs } from './tabsModule.js';
 import { initTOCDropdowns } from './tocDropdowns.js';
@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize TOC dropdowns when the page loads
     // initTOCDropdowns();
 
-    // Attach delete button event
-    const deleteButton = document.querySelector('#delete-button');
-    deleteButton.addEventListener('click', handleDelete);
+    // // Attach delete button event
+    // const deleteButton = document.querySelector('#delete-button');
+    // deleteButton.addEventListener('click', handleDelete);
 
     // Attach upload button event
     const uploadButton = document.querySelector('#upload-button');
@@ -50,19 +50,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * Renders a single Post-it note.
- * @param {Object} note - The note object containing title and summary.
+ * @param {Object} note - The note object containing title, summary, and type.
  * @returns {string} - The HTML string for the note.
  */
 function renderNote(note) {
-    return `
-        <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4">
-            <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}</a>
-            <div class="mt-2 text-sm">
-                <p class="font-semibold">Summary:</p>
-                <p class="break-words">${note.summary.replace(/^- /gm, '')}</p> <!-- Removes any leading '- ' from each line -->
-            </div>
-        </div>
+    const deleteButton = `
+        <button class="delete-note-btn text-red-600 hover:text-red-800 text-sm mt-2" data-id="${note.id}">
+            <i class="fa-solid fa-trash-can " data-id="${note.id}></i>
+        </button>
     `;
+
+    if (note.type === "image") {
+        return `
+            <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4 relative">
+                <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}</a>
+                <div class="mt-2">
+                    <img src="${note.summary}" alt="${note.text}" class="w-full h-auto rounded-md">
+                    <p class="mt-2 text-sm italic">${note.text}</p>
+                </div>
+                ${deleteButton}
+            </div>
+        `;
+    } else {
+        return `
+            <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4 relative note-item">
+                <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}</a>
+                <div class="mt-2 text-sm">
+                    <p class="font-semibold">Summary:</p>
+                    <p class="break-words">${note.summary.replace(/^- /gm, '')}</p>
+                </div>
+                ${deleteButton}
+            </div>
+        `;
+    }
 }
 
 /**
@@ -70,8 +90,52 @@ function renderNote(note) {
  * @param {Array} notes - An array of note objects.
  */
 function renderNotes(notes) {
-    const notesContainer = document.querySelector('#notes-container');
-    notesContainer.innerHTML = notes.map(note => renderNote(note)).join('');
+    const notesContainer = document.getElementById('notes-container');
+    const imagesContainer = document.getElementById('images-container');
+
+    notesContainer.innerHTML = '';
+    imagesContainer.innerHTML = '';
+
+    notes.forEach(note => {
+        if (note.type === 'image') {
+            imagesContainer.innerHTML += createImageNoteHTML(note);
+        } else {
+            notesContainer.innerHTML += createNoteHTML(note);
+        }
+    });
+
+    // Initialize delete buttons for both regular and image notes
+    initializeDeleteButtons();
+}
+
+function createImageNoteHTML(note) {
+    return `
+        <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4 relative image-note-item">
+            <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}
+            <div class="mt-2">
+                <img src="${note.title}" alt="${note.text}" class="w-full h-auto rounded-md">
+                <p class="mt-2 text-sm italic">${note.text}</p>
+            </div></a>
+            <button class="delete-note-btn text-red-600 hover:text-red-800 text-sm mt-2" data-id="${note.id}">
+                <i class="fa-solid fa-trash-can" data-id="${note.id}"></i>
+            </button>
+        </div>
+    `;
+}
+
+function createNoteHTML(note) {
+    return `
+        <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4 relative note-item">
+            <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}</a>
+            <div class="mt-2 text-sm">
+                <p class="font-semibold">Summary:</p>
+                <p class="break-words">${note.summary.replace(/^- /gm, '')}</p>
+            </div>
+            <button class="delete-note-btn text-red-600 hover:text-red-800 text-sm mt-2" data-id="${note.id}">
+                <i class="fa-solid fa-trash-can" data-id="${note.id}"></i>
+            </button>
+        </div>
+    `;
 }
 
 /**
@@ -88,18 +152,18 @@ async function init() {
 
 /**
  * Handles the delete action by calling the delete API and reloading the notes.
- */
-async function handleDelete() {
-    const deleteButton = document.querySelector('#delete-button');
+//  */
+// async function handleDelete() {
+//     const deleteButton = document.querySelector('#delete-button');
 
-    setButtonLoadingState(deleteButton, true); // Set loading state
+//     setButtonLoadingState(deleteButton, true); // Set loading state
 
-    await deleteNotes();
+//     await deleteNotes();
 
-    setButtonLoadingState(deleteButton, false); // Remove loading state
+//     setButtonLoadingState(deleteButton, false); // Remove loading state
 
-    await init();  // Reload notes after deletion
-}
+//     await init();  // Reload notes after deletion
+// }
 
 
 // Initialize the page when the DOM is fully loaded
@@ -107,8 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     // Attach delete button event
-    const deleteButton = document.querySelector('#delete-button');
-    deleteButton.addEventListener('click', handleDelete);
+    // const deleteButton = document.querySelector('#delete-button');
+    // deleteButton.addEventListener('click', handleDelete);
 });
 
 
@@ -209,4 +273,25 @@ function checkForExistingData(key) {
 
     return false;
 }
+
+
+
+function initializeDeleteButtons() {
+    document.querySelectorAll('.delete-note-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const noteId = event.target.dataset.id;
+            try {
+                await deleteSourceById(noteId);
+                // Remove the note from the DOM
+                event.target.closest('.bg-yellow-200').remove();
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                alert('Failed to delete the note. Please try again.');
+            }
+        });
+    });
+}
+
+// Make sure to call initializeDeleteButtons after rendering the notes
+
 

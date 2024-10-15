@@ -54,7 +54,8 @@
             <div class="w-2/3 bg-white shadow-md flex flex-col justify-between h-full overflow-y-auto">
                 <div class="flex justify-between items-center mb-4 p-4">
                     <!-- Upload Button (Primary) -->
-                    <button id="upload-button" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
+                    <button id="upload-button"
+                        class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-md shadow flex items-center">
                         <i class="fa-solid fa-upload mr-2"></i>Upload
                     </button>
                     <!-- Hidden File Input -->
@@ -62,7 +63,8 @@
                     <!-- Action Buttons (Retry and Slides) -->
                     <div class="flex space-x-4">
                         <!-- Retry Button (Primary) -->
-                        <button class="bg-gray-300 text-gray-800 hover:bg-gray-400 p-4 rounded-md shadow flex items-center">
+                        <button
+                            class="bg-gray-300 text-gray-800 hover:bg-gray-400 p-4 rounded-md shadow flex items-center">
                             <i class="fa-solid fa-redo mr-2"></i>Retry
                         </button>
 
@@ -101,15 +103,19 @@
                         class="tab-button text-gray-600 font-semibold py-2 border-b-2 border-transparent focus:outline-none">
                         Books
                     </button>
+                    <button id="images-tab"
+                        class="tab-button text-gray-600 font-semibold py-2 border-b-2 border-transparent focus:outline-none">
+                        Images
+                    </button>
                 </div>
 
                 <!-- Sticky Header with Delete Button -->
                 <div class="sticky top-0 bg-white pt-4 z-9 flex flex-row justify-between items-end">
                     <h2 id="active-tab-title" class="text-xl font-semibold">Notes</h2>
-                    <button id="delete-button"
-                        class="bg-red-500 text-white p-4 rounded-md shadow flex items-center w-[150px]">
-                        <i class="fa-solid fa-trash mr-2"></i>Delete Notes
-                    </button>
+                        <!-- <button id="delete-button"
+                            class="bg-red-500 text-white p-4 rounded-md shadow flex items-center w-[150px]">
+                            <i class="fa-solid fa-trash mr-2"></i>Delete Notes
+                        </button> -->
                 </div>
 
                 <hr class="my-2">
@@ -179,6 +185,11 @@
                         </div>
                     </div>
 
+                </div>
+
+                <!-- iamges Content -->
+                <div id="images-container" class="tab-content overflow-y-auto h-[calc(100%-164px)]">
+                    <!-- Post-it notes for notes will be dynamically inserted here -->
                 </div>
             </div>
 

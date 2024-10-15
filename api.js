@@ -2,8 +2,7 @@
 
 // Base URL and API endpoints
 const BASE_URL = 'http://127.0.0.1:8000';
-const GET_NOTES_SLUG = '/sources';
-const DELETE_SLUG = '/delete-sources';
+const SOURCES_SLUG = '/sources';
 const EXTRACT_TEXT_SLUG = '/extract-text';
 const REFRESH_SEARCH_SLUG = '/extract-text/refresh-search';
 const GET_INDEXED_CHAPTERS_SLUG = '/process-pdf/indexed-chapters';
@@ -58,7 +57,7 @@ async function uploadFiles(files, description, subtopic) {
  */
 async function fetchNotes() {
     try {
-        const response = await fetch(`${BASE_URL}${GET_NOTES_SLUG}`);
+        const response = await fetch(`${BASE_URL}${SOURCES_SLUG}`);
         if (!response.ok) {
             throw new Error('Failed to fetch notes');
         }
@@ -362,5 +361,26 @@ async function fetchSummarySlide(summaries) {
     }
 }
 
+async function deleteSourceById(sourceId) {
+    try {
+        const response = await fetch(`${BASE_URL}${SOURCES_SLUG}/${sourceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add any necessary authentication headers here
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete source');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error deleting source:', error);
+        throw error;
+    }
+}
+
 // Export the functions for use in other modules
-export { fetchNotes, deleteNotes, extractText, fetchSummarySlide, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic, fetchSlideDataWithImages };
+export { fetchNotes, deleteNotes, deleteSourceById, extractText, fetchSummarySlide, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic, fetchSlideDataWithImages };
