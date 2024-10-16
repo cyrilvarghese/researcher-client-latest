@@ -2,7 +2,7 @@ import { fetchImages } from './api.js';
 import { getGlobalData, updateGlobalData } from './tableRenderer.js';
 import { handleFileAttachment } from './galleryManager.js';
 let selectedImageUrls = [];
-let compIndex, partIndex;
+let currentCompIndex, currentPartIndex; // Hold the current context
 
 /**
  * Creates the HTML structure for the image gallery modal.
@@ -40,7 +40,12 @@ function createImageGalleryModal(images) {
     `;
 }
 
-function initializeImageGallery(compIndex, partIndex) {
+
+/**
+ * Initializes the image gallery functionality.
+ * Sets up event listeners if they have not been set up before.
+ */
+function initializeImageGallery() {
     const modal = document.getElementById('image-gallery-modal');
     const scrim = document.getElementById('image-gallery-scrim');
     const closeBtn = document.getElementById('close-image-gallery-btn');
@@ -61,40 +66,49 @@ function initializeImageGallery(compIndex, partIndex) {
         selectedCountEl.textContent = '0 selected';
     }
 
-    // Event listener for closing the modal
-    closeBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        scrim.classList.add('hidden');
-        resetSelections();
-    });
+    // Ensure event listeners are added only once
+    if (!closeBtn.dataset.listenerAttached) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            scrim.classList.add('hidden');
+            resetSelections();
+        });
+        closeBtn.dataset.listenerAttached = true;
+    }
 
-    // Event listeners for selecting/deselecting images
+    // Add listeners to checkboxes for selecting/deselecting images
     imageItems.forEach(item => {
         const checkbox = item.querySelector('.image-select-checkbox');
         const imageUrl = item.dataset.imageUrl;
 
-        checkbox.addEventListener('change', () => {
-            if (checkbox.checked) {
-                selectedImageUrls.push(imageUrl);
-                item.classList.add('shadow-md', 'border-b-2', 'border-gray-500');
-            } else {
-                selectedImageUrls = selectedImageUrls.filter(url => url !== imageUrl);
-                item.classList.remove('shadow-md', 'border-b-2', 'border-gray-500');
-            }
-            selectedCountEl.textContent = `${selectedImageUrls.length} selected`;
-        });
+        if (!checkbox.dataset.listenerAttached) {
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    selectedImageUrls.push(imageUrl);
+                    item.classList.add('shadow-md', 'border-b-2', 'border-gray-500');
+                } else {
+                    selectedImageUrls = selectedImageUrls.filter(url => url !== imageUrl);
+                    item.classList.remove('shadow-md', 'border-b-2', 'border-gray-500');
+                }
+                selectedCountEl.textContent = `${selectedImageUrls.length} selected`;
+            });
+            checkbox.dataset.listenerAttached = true;
+        }
     });
 
-    // Ensure no duplicate event listeners are attached
-    confirmBtn.removeEventListener('click', handleConfirmClick);
-    confirmBtn.addEventListener('click', handleConfirmClick);
-
-    // Define the named function for handling the confirmation click
-    function handleConfirmClick() {
-        handleConfirmButtonClick(compIndex, partIndex);
+    // Ensure confirm button listener is only added once
+    if (!confirmBtn.dataset.listenerAttached) {
+        confirmBtn.addEventListener('click', handleConfirmClick);
+        confirmBtn.dataset.listenerAttached = true;
     }
 }
 
+/**
+ * Handles the click on the confirm button.
+ */
+function handleConfirmClick() {
+    handleConfirmButtonClick(currentCompIndex, currentPartIndex);
+}
 
 
 function handleConfirmButtonClick(compIndex, partIndex) {
@@ -115,6 +129,12 @@ function handleConfirmButtonClick(compIndex, partIndex) {
 
 
 
+/**
+ * Opens the image gallery modal.
+ * Sets or updates the current context for competency and part indexes.
+ * @param {number} compIndex - The competency index.
+ * @param {number} partIndex - The part index within the competency.
+ */
 export async function openImageGallery(compIndex, partIndex) {
     try {
         // Check if the modal already exists
@@ -127,8 +147,12 @@ export async function openImageGallery(compIndex, partIndex) {
             document.body.insertAdjacentHTML('beforeend', galleryHTML);
         }
 
-        // Initialize the gallery after ensuring the modal exists
-        initializeImageGallery(compIndex, partIndex);
+        // Update the current context variables
+        currentCompIndex = compIndex;
+        currentPartIndex = partIndex;
+
+        // Initialize the gallery, but avoid reattaching duplicate listeners
+        initializeImageGallery();
     } catch (error) {
         console.error('Failed to open image gallery:', error);
     }
