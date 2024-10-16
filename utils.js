@@ -81,7 +81,7 @@ export function toggleLoadingState(isLoading) {
             if (icon) icon.className = 'fas fa-file-upload fa-3x mb-4 text-gray-400';
         }
 
-        emptyStateContainer.classList.remove('hidden');
+        // emptyStateContainer.classList.remove('hidden');
     }
     else {
 

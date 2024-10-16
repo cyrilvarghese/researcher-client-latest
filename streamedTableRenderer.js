@@ -4,7 +4,6 @@
 import { generateTableRow, updateMatchesLink, handleAugmentContext } from './tableRow.js';
 import { openAddSubtopicModal } from './addSubtopic.js';
 import { createTableWithAddButton, createAddSubtopicModal, createDocsModal } from './htmlComponents.js';
-import { initializeFileInputListener, openGallery } from './galleryManager.js';
 import { refreshDocuments, fetchSlideData, uploadFiles } from './api.js';
 import { showContentPopup } from './newSliderenderer.js';
 
@@ -46,7 +45,6 @@ export async function renderStreamedTable(formData) {
 
         initializeDocViewHandlers();
         initializeRefreshHandlers();
-        initializeFileInputListener();
         setupAugmentContextButtons();
 
         // Listen for attach button click

@@ -48,42 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-/**
- * Renders a single Post-it note.
- * @param {Object} note - The note object containing title, summary, and type.
- * @returns {string} - The HTML string for the note.
- */
-function renderNote(note) {
-    const deleteButton = `
-        <button class="delete-note-btn text-red-600 hover:text-red-800 text-sm mt-2" data-id="${note.id}">
-            <i class="fa-solid fa-trash-can " data-id="${note.id}></i>
-        </button>
-    `;
-
-    if (note.type === "image") {
-        return `
-            <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4 relative">
-                <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}</a>
-                <div class="mt-2">
-                    <img src="${note.summary}" alt="${note.text}" class="w-full h-auto rounded-md">
-                    <p class="mt-2 text-sm italic">${note.text}</p>
-                </div>
-                ${deleteButton}
-            </div>
-        `;
-    } else {
-        return `
-            <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4 relative note-item">
-                <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}</a>
-                <div class="mt-2 text-sm">
-                    <p class="font-semibold">Summary:</p>
-                    <p class="break-words">${note.summary.replace(/^- /gm, '')}</p>
-                </div>
-                ${deleteButton}
-            </div>
-        `;
-    }
-}
 
 /**
  * Renders all notes and inserts them into the DOM.
@@ -111,11 +75,13 @@ function renderNotes(notes) {
 function createImageNoteHTML(note) {
     return `
         <div class="bg-yellow-200 p-4 rounded-md shadow-md mb-4 relative image-note-item">
-            <a href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}
+            <a target="_blank" href="${note.title}" class="text-lg font-semibold text-blue-600 break-all">${note.title}
             <div class="mt-2">
                 <img src="${note.title}" alt="${note.text}" class="w-full h-auto rounded-md">
-                <p class="mt-2 text-sm italic">${note.text}</p>
             </div></a>
+            <div class="mt-2">
+                <p class="mt-2 text-sm italic">${note.summary}</p>
+            </div>
             <button class="delete-note-btn text-red-600 hover:text-red-800 text-sm mt-2" data-id="${note.id}">
                 <i class="fa-solid fa-trash-can" data-id="${note.id}"></i>
             </button>

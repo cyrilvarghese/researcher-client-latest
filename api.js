@@ -10,6 +10,7 @@ const GET_TOC_SLUG = '/process-pdf/toc';
 const AUGMENT_SUBTOPIC_SLUG = '/augment-subtopic';
 const GET_SLIDE_UPLOAD_SLUG = '/get-slide-upload';
 const GET_SUMMARY_SLIDE_SLUG = '/get-summary-slide';
+const GET_IMAGES_SLUG = '/sources/images';
 
 // const UPLOAD_STORE = '/upload-store';
 const GET_SLIDE_SLUG = '/get-slide';
@@ -261,7 +262,7 @@ async function augmentSubtopic(topic, subtopic) {
  * @param {string} textContent - The text content for slide generation (as a single string).
  * @returns {Promise<Object>} A promise that resolves to the combined API response from the backend.
  */
-async function fetchSlideDataWithImages(files, description, subtopic, textContent) {
+async function fetchSlideDataWithImages(files, attachmentsFromGallery, description, subtopic, textContent) {
     try {
         const formData = new FormData();
         formData.append('subtopic_name', subtopic);  // Subtopic field for both slide generation and upload
@@ -272,6 +273,10 @@ async function fetchSlideDataWithImages(files, description, subtopic, textConten
             formData.append('files', file);
         });
 
+        // Append image urls from image Notes
+        Array.from(attachmentsFromGallery).forEach((file) => {
+            formData.append('image_urls', file);
+        });
         // Append text content for slide generation as a single string
         formData.append('text_content', textContent);
 
@@ -382,5 +387,45 @@ async function deleteSourceById(sourceId) {
     }
 }
 
+/**
+ * Fetches images from the server.
+ * @returns {Promise<Object>} A promise that resolves to the fetched image data.
+ */
+async function fetchImages() {
+    try {
+        const response = await fetch(`${BASE_URL}${GET_IMAGES_SLUG}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add any additional headers if required, e.g., authorization
+                // 'Authorization': 'Bearer ' + yourAuthToken,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching images:', error);
+        throw error;
+    }
+}
+
 // Export the functions for use in other modules
-export { fetchNotes, deleteNotes, deleteSourceById, extractText, fetchSummarySlide, fetchIndexedChapters, refreshDocuments, fetchSlideData, uploadFiles, augmentSubtopic, fetchSlideDataWithImages };
+export {
+    fetchNotes,
+    deleteNotes,
+    deleteSourceById,
+    extractText,
+    fetchSummarySlide,
+    fetchIndexedChapters,
+    refreshDocuments,
+    fetchSlideData,
+    uploadFiles,
+    augmentSubtopic,
+    fetchSlideDataWithImages,
+    fetchImages
+};

@@ -40,7 +40,7 @@ function activateTab(tab) {
         booksContainer.classList.add('hidden');
         imagesContainer.classList.remove('hidden');
         notesContainer.classList.add('hidden');
-        activeTabTitle.textContent = 'Images';
+        activeTabTitle.textContent = 'Gallery';
     }
     // Update tab button styles
     document.getElementById('notes-tab').classList.toggle('border-blue-500', tab === 'notes');

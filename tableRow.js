@@ -1,7 +1,9 @@
 import { getGlobalData, updateGlobalData } from './tableRenderer.js';
 import { augmentSubtopic } from './api.js';
+import { openImageGallery } from './imageNotesGallery.js';
+import { handleFileAttachment } from './galleryManager.js';
 
-export function generateTableRow(compIndex, partIndex, part) {
+function generateTableRow(compIndex, partIndex, part) {
     return `
         <tr class="hover:bg-gray-100" data-comp-index="${compIndex}" data-part-index="${partIndex}">
             <td class="border border-gray-300 p-2 text-left">
@@ -51,9 +53,21 @@ export function generateTableRow(compIndex, partIndex, part) {
                         </div>    
                         
                          <!-- Attach Icon with Hidden File Input next to View Docs -->
-                        <button title=" Attach Images To Slides" class=" p-1 rounded-full hover:bg-gray-200 transition-colors duration-200 attach-button text-gray-500 hover:text-blue-500 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
-                            <i class="fa-solid fa-paperclip"></i>
-                        </button>
+                        <div class="relative inline-block text-left ml-2">
+                            <button type="button" class="p-1 rounded-full hover:bg-gray-200 transition-colors duration-200 attach-button text-gray-500 hover:text-blue-500 cursor-pointer" id="attach-menu-${compIndex}-${partIndex}" aria-expanded="false" aria-haspopup="true" title="Attach Images To Slides" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Attach">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </button>
+                            <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-50" role="menu" aria-orientation="vertical" aria-labelledby="attach-menu-${compIndex}-${partIndex}" id="attach-dropdown-${compIndex}-${partIndex}">
+                                <div class="py-1 bg-gray-100" role="none">
+                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:text-gray-900" role="menuitem" id="attach-gallery-${compIndex}-${partIndex}">
+                                        <i class="fa-solid fa-images mr-2"></i>Attach from Gallery
+                                    </button>
+                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:text-gray-900" role="menuitem" id="attach-desktop-${compIndex}-${partIndex}">
+                                        <i class="fa-solid fa-desktop mr-2"></i>Attach from Desktop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <!-- Presentation Slides Button -->
                     <button class=" p-1 rounded-full hover:bg-gray-200 transition-colors duration-200  slides-button text-gray-500 hover:text-orange-700 cursor-pointer ml-2" data-comp-index="${compIndex}" data-part-index="${partIndex}" aria-label="Slides">
@@ -178,3 +192,61 @@ function saveAugmentedInfo(compIndex, partIndex, newValue) {
     updateGlobalData(currentData);
     console.log('Augmented info updated and saved.');
 }
+
+function initializeAttachmentDropdowns() {
+    document.addEventListener('click', function (event) {
+        // Toggle dropdown
+        const toggleButton = event.target.closest('[id^="attach-menu-"]');
+        if (toggleButton) {
+            const dropdownId = toggleButton.id.replace('menu', 'dropdown');
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.classList.toggle('hidden');
+            event.stopPropagation(); // Prevent immediate closing
+        }
+
+        // Handle "Attach from Gallery" option
+        const attachGalleryButton = event.target.closest('[id^="attach-gallery-"]');
+        if (attachGalleryButton) {
+            const [compIndex, partIndex] = attachGalleryButton.id.split('-').slice(-2);
+            console.log(`Open gallery for comp ${compIndex}, part ${partIndex}`);
+            openImageGallery(compIndex, partIndex);
+            closeDropdown(attachGalleryButton);
+            event.stopPropagation();
+        }
+
+        // Handle "Attach from Desktop" option
+        const attachDesktopButton = event.target.closest('[id^="attach-desktop-"]');
+        if (attachDesktopButton) {
+            const [compIndex, partIndex] = attachDesktopButton.id.split('-').slice(-2);
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = true;
+            input.onchange = (e) => {
+                const files = Array.from(e.target.files);
+                handleFileAttachment(files, compIndex, partIndex);
+            };
+            input.click();
+            closeDropdown(attachDesktopButton);
+            event.stopPropagation();
+        }
+
+        // Close all dropdowns when clicking outside
+        if (!event.target.closest('.relative')) {
+            document.querySelectorAll('[id^="attach-dropdown-"]').forEach(dropdown => {
+                dropdown.classList.add('hidden');
+            });
+        }
+    });
+}
+
+// Add this function to close the dropdown
+function closeDropdown(button) {
+    const dropdownId ="attach-dropdown-"+ button.id.split('-').slice(-2).join('-');
+    const dropdown = document.getElementById(dropdownId);
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+    }
+}
+
+export { generateTableRow, initializeAttachmentDropdowns };

@@ -1,11 +1,10 @@
 // tableRenderer.js
 
-import { refreshDocuments, fetchSlideData, uploadFiles, fetchSlideDataWithImages } from './api.js'; // Import the refreshDocuments function
+import { refreshDocuments, fetchSlideDataWithImages } from './api.js'; // Import the refreshDocuments function
 import { showContentPopup } from './newSliderenderer.js';
-import { generateTableRow, updateMatchesLink, handleAugmentContext } from './tableRow.js';
+import { generateTableRow, updateMatchesLink, handleAugmentContext, initializeAttachmentDropdowns } from './tableRow.js';
 import { openAddSubtopicModal } from './addSubtopic.js';
 import { createTableWithAddButton, createAddSubtopicModal, createDocsModal } from './htmlComponents.js';
-import { initializeFileInputListener, openGallery } from './galleryManager.js';
 import { initializeCheckboxHandler } from './subtopicChecboxHandler.js';
 
 // Private variable to hold our global data
@@ -53,11 +52,12 @@ export function renderExtractedDataTable(data) {
 
 function initializeAllEventHandlers() {
     initializeDocViewHandlers();
+    initializeSlidesButtons();
     initializeRefreshHandlers();
-    initializeFileInputListener();
     setupAugmentContextButtons();
     initializeCheckboxHandler();
     initializeAddSubtopicButton();
+    initializeAttachmentDropdowns();
 }
 
 
@@ -75,7 +75,6 @@ function setupAugmentContextButtons() {
 //-----------------------------------
 // Define the handler function
 function handleAddSubtopic() {
-    // Initial compIndex and partIndex
 
     openAddSubtopicModal()
 }
@@ -111,67 +110,21 @@ function initializeDocViewHandlers() {
     });
     document.getElementById('close-docs-btn').addEventListener('click', closeDocs);
 
-    /**
-     * Initializes the event handlers for the slides.
-     */
-    initializeSlidesButtons();
-
-    // Object to store the file URLs mapped to subtopics (using comp-index and part-index as unique keys)
-    const subtopicFileUrls = {};
-
-
-    // // Listen for file input change
-    // document.addEventListener('change', async (event) => {
-    //     if (event.target.classList.contains('file-input')) {
-    //         const files = event.target.files;
-    //         const compIndex = event.target.getAttribute('data-comp-index');
-    //         const partIndex = event.target.getAttribute('data-part-index');
-    //         const subtopicKey = `${compIndex}-${partIndex}`;
-    //         const subtopic = globalData.competencies[compIndex].parts[partIndex].name;
-    //         console.log(subtopic)
-    //         if (files.length > 0) {
-    //             console.log('Files attached:', files);
-
-    //             // Initialize the subtopic's file list if not already done
-    //             if (!subtopicFileUrls[subtopicKey]) {
-    //                 subtopicFileUrls[subtopicKey] = [];
-    //             }
-
-    //             uploadFiles(files, "description", subtopic)
-    //                 .then(response => {
-    //                     console.log('Upload Success:', response);
-    //                     // Update the file count next to the attach icon
-    //                     const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-    //                     if (fileCountElement) {
-    //                         fileCountElement.textContent = response.azure_blob_urls.length
-
-    //                     }
-
-    //                 })
-    //                 .catch(error => {
-    //                     console.error('Error during upload:', error);
-    //                 });
-    //             // Loop over each file and generate a dummy URL
 
 
 
-    //             // Log the updated subtopic-to-file mapping
-    //             console.log(`Updated file list for subtopic ${subtopicKey}:`, subtopicFileUrls[subtopicKey]);
-
-    //             // If you want to display the file URLs in the UI, you could add logic here to render them.
-    //             // For example, append the file URLs to a subtopic-specific list in the UI.
-    //         }
-    //     }
-    // });
 }
 
+
+//-----------------------------------
 async function handleSlidesButtonClick(event) {
     const button = event.currentTarget;
     const compIndex = button.getAttribute('data-comp-index');
     const partIndex = button.getAttribute('data-part-index');
     const partName = globalData.competencies[compIndex].parts[partIndex].name;
     const relevantDocs = globalData.competencies[compIndex].parts[partIndex].relevant_docs.map(doc => doc.page_content);
-    const images = globalData.competencies[compIndex].parts[partIndex].images || [];
+    const attachmentsFromDesktop = globalData.competencies[compIndex].parts[partIndex].images || [];
+    const attachmentsFromGallery = globalData.competencies[compIndex].parts[partIndex].attachmentsFromGallery || [];
     const buttonIcon = button.querySelector('i');
     const originalHTML = button.innerHTML;
 
@@ -179,8 +132,8 @@ async function handleSlidesButtonClick(event) {
     button.classList.add('animate-pulse');
 
     try {
-        const data = await fetchSlideDataWithImages(images, partName, partName, relevantDocs)   ;
-        showContentPopup(data,compIndex,partIndex);
+        const data = await fetchSlideDataWithImages(attachmentsFromDesktop, attachmentsFromGallery, partName, partName, relevantDocs);
+        showContentPopup(data, compIndex, partIndex);
 
         const checkbox = document.querySelector(`.subtopic-checkbox[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
 
@@ -196,6 +149,8 @@ async function handleSlidesButtonClick(event) {
         button.classList.remove('animate-pulse');
     }
 }
+//-----------------------------------
+
 
 /**
  * Initializes the event handlers for the refresh buttons.

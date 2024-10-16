@@ -1,69 +1,9 @@
-// galleryManager.js
+
 import { getGlobalData, updateGlobalData } from './tableRenderer.js';
 
-
+// Add this at the top of your file or where you declare your global variables
+let subtopicImageUrls = {};
 const subtopicFileUrls = {}; // Memory object to store files for each subtopic
-
-/**
- * Initialize the file input change listener.
- * Tracks files locally per subtopic and updates the file count.
- */
-export function initializeFileInputListener() {
-    document.addEventListener('click', function (event) {
-        if (event.target.closest('.attach-button')) {
-            const button = event.target.closest('.attach-button');
-            const compIndex = button.getAttribute('data-comp-index');
-            const partIndex = button.getAttribute('data-part-index');
-            const fileInput = document.querySelector(`.file-input[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-
-            // Trigger the file input
-            fileInput.click();
-        }
-    });
-    document.addEventListener('change', async (event) => {
-        if (event.target.classList.contains('file-input')) {
-            const files = event.target.files;
-            const compIndex = event.target.getAttribute('data-comp-index');
-            const partIndex = event.target.getAttribute('data-part-index');
-            const subtopicKey = `${compIndex}-${partIndex}`;
-
-          
-            if (files.length > 0) {
-                console.log('Files attached:', files);
-
-                // Initialize the subtopic's file list if not already done
-                if (!subtopicFileUrls[subtopicKey]) {
-                    subtopicFileUrls[subtopicKey] = [];
-                }
-
-                // Add files to subtopic memory list
-                for (let file of files) {
-                    subtopicFileUrls[subtopicKey].push(file);
-                }
-
-                // Log the updated subtopic-to-file mapping
-                console.log(`Updated file list for subtopic ${subtopicKey}:`, subtopicFileUrls[subtopicKey]);
-
-                // Update the file count link next to the attach icon
-                const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-                if (fileCountElement) {
-                    fileCountElement.innerHTML = `<a href="#" class="open-gallery-link text-blue-500 underline" data-comp-index="${compIndex}" data-part-index="${partIndex}">Images (${subtopicFileUrls[subtopicKey].length})</a>`;
-                }
-
-                // Add event listener to open the gallery
-                const galleryLink = document.querySelector(`.open-gallery-link[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-                
-                galleryLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    openGallery(subtopicKey);
-                });
-                let globalData = getGlobalData();
-                globalData.competencies[compIndex].parts[partIndex].images = subtopicFileUrls[subtopicKey] || [];
-                updateGlobalData(globalData);   
-            }
-        }
-    });
-}
 
 /**
  * Opens the gallery modal to display the files for the specified subtopic.
@@ -77,73 +17,229 @@ export function openGallery(subtopicKey) {
     galleryImages.innerHTML = '';
 
     // Add images to the gallery modal
-    subtopicFileUrls[subtopicKey].forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const imgElement = document.createElement('div');
-            imgElement.classList.add('relative');
-            imgElement.innerHTML = `
-            <img src="${e.target.result}" class="w-48 h-48 object-cover rounded-lg shadow-lg">
-            <button class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full remove-image-btn" data-index="${index}">
-                <i class="fa-solid fa-trash"></i>  <!-- Trash icon -->
-            </button>
-            `;
+    if (subtopicImageUrls[subtopicKey]) {
+        subtopicImageUrls[subtopicKey].forEach((url, index) => {
+            const imgElement = createImageElement(url, index, 'url', subtopicKey);
             galleryImages.appendChild(imgElement);
+        });
+    }
 
-            // Add event listener for remove button
-            imgElement.querySelector('.remove-image-btn').addEventListener('click', () => {
-                removeImage(subtopicKey, index);
-            });
-        };
-        reader.readAsDataURL(file); // Convert file to base64 URL
-    });
+    // Add this block to handle subtopicFileUrls
+    if (subtopicFileUrls[subtopicKey]) {
+        subtopicFileUrls[subtopicKey].forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgElement = createImageElement(e.target.result, index, 'file', subtopicKey);
+                galleryImages.appendChild(imgElement);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
     // Show the gallery modal
     galleryModal.classList.remove('hidden');
 
     // Close the gallery modal
-    document.getElementById('close-gallery').addEventListener('click', () => {
-        galleryModal.classList.add('hidden');
-    });
+    const closeGalleryButton = document.getElementById('close-gallery');
+    closeGalleryButton.removeEventListener('click', closeGalleryHandler);
+    closeGalleryButton.addEventListener('click', closeGalleryHandler);
+}
 
-
+/**
+ * Handler to close the gallery modal.
+ */
+function closeGalleryHandler() {
+    const galleryModal = document.getElementById('gallery-modal');
+    galleryModal.classList.add('hidden');
 }
 
 /**
  * Removes an image from the subtopic file list.
  * @param {string} subtopicKey - The unique key for the subtopic (compIndex-partIndex).
  * @param {number} index - The index of the image to be removed.
+ * @param {string} type - The type of the image (url/file).
  */
-function removeImage(subtopicKey, index) {
-    // Extract compIndex and partIndex
-    const [compIndex, partIndex] = subtopicKey.split('-');
-    debugger
-    const galleryModal = document.getElementById('gallery-modal');
+function removeImage(subtopicKey, index, type) {
+    if (type === 'url') {
+        subtopicImageUrls[subtopicKey].splice(index, 1);
+    } else if (type === 'file') {
+        subtopicFileUrls[subtopicKey].splice(index, 1);
+    }
+    updateGallery(subtopicKey);
+    updateImageCount(subtopicKey.split('-')[0], subtopicKey.split('-')[1]);
+}
 
-    // Remove the file from the memory list
-    subtopicFileUrls[subtopicKey].splice(index, 1);
+/**
+ * Handles file attachment for a specific subtopic.
+ * @param {FileList} files - The list of files to attach.
+ * @param {string} compIndex - The competency index.
+ * @param {string} partIndex - The part index.
+ * @param {Array} imageUrls - An array of image URLs to attach.
+ */
+export function handleFileAttachment(files = [], compIndex, partIndex, imageUrls = []) {
+    const subtopicKey = `${compIndex}-${partIndex}`;
+
+    if (imageUrls.length > 0) {
+        console.log('Image URLs attached:', imageUrls);
+        if (!subtopicImageUrls[subtopicKey]) {
+            subtopicImageUrls[subtopicKey] = [];
+        }
+
+        subtopicImageUrls[subtopicKey] = [...subtopicImageUrls[subtopicKey], ...imageUrls];
+
+        let globalData = getGlobalData();
+        globalData.competencies[compIndex].parts[partIndex].attachmentsFromGallery = subtopicImageUrls[subtopicKey] || [];
+        updateGlobalData(globalData);
+    }
+
+    if (files.length > 0) {
+        console.log('Files attached:', files);
+
+        if (!subtopicFileUrls[subtopicKey]) {
+            subtopicFileUrls[subtopicKey] = [];
+        }
+
+        subtopicFileUrls[subtopicKey] = [...subtopicFileUrls[subtopicKey], ...files];
+
+        const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+        if (fileCountElement) {
+            const fileCount = (subtopicFileUrls[subtopicKey] || []).length;
+            const imageUrlCount = (subtopicImageUrls[subtopicKey] || []).length;
+            const totalCount = fileCount + imageUrlCount;
+
+            fileCountElement.innerHTML = `<a href="#" class="open-gallery-link text-blue-500 underline" data-comp-index="${compIndex}" data-part-index="${partIndex}">Images (${totalCount})</a>`;
+        }
+
+        const galleryLink = document.querySelector(`.open-gallery-link[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+
+        if (galleryLink) {
+            galleryLink.removeEventListener('click', openGalleryHandler);
+            galleryLink.addEventListener('click', (e) => openGalleryHandler(e, subtopicKey));
+        }
+
+        let globalData = getGlobalData();
+        globalData.competencies[compIndex].parts[partIndex].images = subtopicFileUrls[subtopicKey] || [];
+        updateGlobalData(globalData);
+    }
+
+    updateCountAndAttachEvents(subtopicKey, compIndex, partIndex);
+}
+
+
+/**
+ * Updates the gallery and file count link, and attaches event handlers for the gallery link.
+ * @param {string} subtopicKey - The unique key for the subtopic.
+ * @param {string} compIndex - The competency index.
+ * @param {string} partIndex - The part index.
+ */
+function updateCountAndAttachEvents(subtopicKey, compIndex, partIndex) {
+    console.log(`Updated file list for subtopic ${subtopicKey}:`, subtopicFileUrls[subtopicKey]);
+
     const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
     if (fileCountElement) {
-        fileCountElement.innerHTML = `<a href="#" class="open-gallery-link text-blue-500 underline" data-comp-index="${compIndex}" data-part-index="${partIndex}">Images (${subtopicFileUrls[subtopicKey].length})</a>`;
-        //  Add event listener to open the gallery
-        const galleryLink = document.querySelector(`.open-gallery-link[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
-        galleryLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            openGallery(subtopicKey);
+        const fileCount = (subtopicFileUrls[subtopicKey] || []).length;
+        const imageUrlCount = (subtopicImageUrls[subtopicKey] || []).length;
+        const totalCount = fileCount + imageUrlCount;
+
+        fileCountElement.innerHTML = `<a href="#" class="open-gallery-link text-blue-500 underline" data-comp-index="${compIndex}" data-part-index="${partIndex}">Images (${totalCount})</a>`;
+    }
+
+    const galleryLink = document.querySelector(`.open-gallery-link[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+
+    if (galleryLink) {
+        galleryLink.removeEventListener('click', openGalleryHandler);
+        galleryLink.addEventListener('click', (e) => openGalleryHandler(e, subtopicKey));
+    }
+}
+
+
+/**
+ * Event handler to open the gallery modal.
+ * @param {Event} e - The click event.
+ * @param {string} subtopicKey - The unique key for the subtopic.
+ */
+function openGalleryHandler(e, subtopicKey) {
+    e.preventDefault();
+    openGallery(subtopicKey);
+}
+
+/**
+ * Refreshes the gallery display for a specific subtopic.
+ * @param {string} subtopicKey - The key identifying the subtopic.
+ */
+function updateGallery(subtopicKey) {
+    const galleryContainer = document.getElementById('gallery-images');
+    if (!galleryContainer) return;
+
+    galleryContainer.innerHTML = ''; // Clear existing content
+
+    if (subtopicImageUrls[subtopicKey]) {
+        subtopicImageUrls[subtopicKey].forEach((url, index) => {
+            const imgElement = createImageElement(url, index, 'url', subtopicKey);
+            galleryContainer.appendChild(imgElement);
         });
     }
-    if (subtopicFileUrls[subtopicKey].length === 0) {
-        debugger
-        galleryModal.classList.add('hidden');
-        fileCountElement.innerHTML = `<a href="#" class="open-gallery-link" data-comp-index="${compIndex}" data-part-index="${partIndex}"> (${subtopicFileUrls[subtopicKey].length})</a>`;
 
+    if (subtopicFileUrls[subtopicKey]) {
+        subtopicFileUrls[subtopicKey].forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgElement = createImageElement(e.target.result, index, 'file', subtopicKey);
+                galleryContainer.appendChild(imgElement);
+            };
+            reader.readAsDataURL(file);
+        });
     }
-    else {
-        console.log(`Updated file list for subtopic ${subtopicKey}:`, subtopicFileUrls[subtopicKey]);
-
-        // Refresh the gallery view
-        openGallery(subtopicKey);
-    }
-
-
 }
+
+/**
+ * Creates an image element for the gallery.
+ * @param {string} src - The source URL or data URL of the image.
+ * @param {number} index - The index of the image in its array.
+ * @param {string} type - The type of image ('url' or 'file').
+ * @param {string} subtopicKey - The key identifying the subtopic.
+ * @returns {HTMLElement} The created image element.
+ */
+function createImageElement(src, index, type, subtopicKey) {
+    const imgElement = document.createElement('div');
+    imgElement.classList.add('relative', 'inline-block', 'm-2');
+    imgElement.innerHTML = `
+        <img src="${src}" class="w-48 h-48 object-cover rounded-lg shadow-lg">
+        <button class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full remove-image-btn" data-index="${index}" data-type="${type}">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    `;
+    imgElement.querySelector('.remove-image-btn').addEventListener('click', () => removeImage(subtopicKey, index, type));
+    return imgElement;
+}
+
+/**
+ * Updates the image count display for a specific subtopic.
+ * @param {number} compIndex - The competency index.
+ * @param {number} partIndex - The part index within the competency.
+ */
+function updateImageCount(compIndex, partIndex) {
+    const subtopicKey = `${compIndex}-${partIndex}`;
+    const fileCountElement = document.querySelector(`.file-count[data-comp-index="${compIndex}"][data-part-index="${partIndex}"]`);
+    if (fileCountElement) {
+        const fileCount = (subtopicFileUrls[subtopicKey] || []).length;
+        const imageUrlCount = (subtopicImageUrls[subtopicKey] || []).length;
+        const totalCount = fileCount + imageUrlCount;
+
+        fileCountElement.innerHTML = `<a href="#" class="open-gallery-link text-blue-500 underline" data-comp-index="${compIndex}" data-part-index="${partIndex}">Images (${totalCount})</a>`;
+
+        const galleryLink = fileCountElement.querySelector('.open-gallery-link');
+        if (galleryLink) {
+            galleryLink.removeEventListener('click', openGalleryHandler);
+            galleryLink.addEventListener('click', (e) => openGalleryHandler(e, subtopicKey));
+        }
+    }
+}
+
+
+
+
+// // Don't forget to export these functions if they need to be used in other modules
+// export { updateGallery, updateImageCount, removeImage };
+
+
