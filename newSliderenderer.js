@@ -2,6 +2,7 @@ import { getGlobalData, updateGlobalData } from './tableRenderer.js';
 export function showContentPopup(content, compIndex = null, partIndex = null) {
     let data = JSON.parse(content.content)
     let imagesURLs = content.images;
+    let presentationURL = content.presentation_url.public_url;
     if (compIndex && partIndex) {//called frm tableRenderer
         setSummary(data.summary, compIndex, partIndex);
     }
@@ -18,11 +19,11 @@ export function showContentPopup(content, compIndex = null, partIndex = null) {
 
             <!-- Tabs and Content -->
             ${compIndex && partIndex ? `${createTabs()}
-            ${createSlidesContent(data.slides, imagesURLs)}
+            ${createSlidesContent(data.slides, imagesURLs, presentationURL)}
             ${createQuizContent(data.quiz)}
             ${createCaseContent(data.case_based)}
             ${createBloomsContent(data.blooms)}` : `${createSlidesTab()}
-            ${createSlidesContent(data.slides, imagesURLs)}`}
+            ${createSlidesContent(data.slides, imagesURLs, presentationURL)}`}
             
         </div>
     </div>
@@ -54,7 +55,7 @@ function createSlidesTab() {
     return `<button id="slides-tab" class="tab-button-content font-semibold">Slides</button>`;
 }
 
-function createSlidesContent(slides, imageUrls) {
+function createSlidesContent(slides, imageUrls, presentationURL) {
     // Create a homogeneous structure for all slides
     const homogenousSlides = slides.flatMap(slide =>
         slide.content.map(section => ({
@@ -77,16 +78,20 @@ function createSlidesContent(slides, imageUrls) {
 
     return `
     <div id="slides-content" class="tab-content-lm h-[calc(100%-50px)] overflow-hidden">
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex flex-col justify-between items-start mb-4">
             <h2 class="text-lg font-semibold w-full truncate overflow-hidden cursor-pointer">${homogenousSlides[0].title}</h2>
-        </div>
-        <div class="flex flex-start items-center mb-4 pl-1">
-           <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-switch" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 transition-colors duration-300"></div>
-                <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transform peer-checked:translate-x-5 transition-transform duration-300"></div>
-            </label>
-            <span id="toggle-label" class="ml-3 text-gray-700">Slideshow Off</span>
+           
+            </div>
+        <div class="flex justify-between items-center mb-4 pl-1">
+            <div class="flex justify-center items-center">
+            <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="toggle-switch" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 transition-colors duration-300"></div>
+                    <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transform peer-checked:translate-x-5 transition-transform duration-300"></div>
+                </label>
+                <span id="toggle-label" class="ml-3 text-gray-700">Slideshow Off</span>
+            </div>
+            <a href="${presentationURL}" class="text-blue-500 underline" target="_blank">link to the slides</a>
         </div>
         <div id="json-content" class="h-[calc(100%-70px)] w-full overflow-auto flex-1 bg-gray-100 rounded-lg p-4 ">
             ${homogenousSlides.map(slide => `

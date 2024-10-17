@@ -262,7 +262,7 @@ async function augmentSubtopic(topic, subtopic) {
  * @param {string} textContent - The text content for slide generation (as a single string).
  * @returns {Promise<Object>} A promise that resolves to the combined API response from the backend.
  */
-async function fetchSlideDataWithImages(files, attachmentsFromGallery, description, subtopic, textContent) {
+async function fetchSlideDataWithImages(files, attachmentsFromGallery,   description, subtopic, textContent) {
     try {
         const formData = new FormData();
         formData.append('subtopic_name', subtopic);  // Subtopic field for both slide generation and upload
