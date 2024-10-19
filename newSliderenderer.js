@@ -1,6 +1,6 @@
 import { getGlobalData, updateGlobalData } from './tableRenderer.js';
 export function showContentPopup(content, compIndex = null, partIndex = null) {
-    let data = JSON.parse(content.content)
+    let data = content.content;
     let imagesURLs = content.images;
     let presentationURL = content.presentation_url.public_url;
     if (compIndex && partIndex) {//called frm tableRenderer
@@ -84,7 +84,7 @@ function createSlidesContent(slides, imageUrls, presentationURL) {
             </div>
         <div class="flex justify-between items-center mb-4 pl-1">
             <div class="flex justify-center items-center">
-            <label class="relative inline-flex items-center cursor-pointer">
+                <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="toggle-switch" class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 transition-colors duration-300"></div>
                     <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transform peer-checked:translate-x-5 transition-transform duration-300"></div>
